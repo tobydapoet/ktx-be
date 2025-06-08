@@ -21,7 +21,7 @@ import { AccountModule } from './account/account.module';
       port: 3306,
       username: 'root',
       password: '',
-      database: 'ktxx',
+      database: 'ktxxx',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
       synchronize: true,
     }),

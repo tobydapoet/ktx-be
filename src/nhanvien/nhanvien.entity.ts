@@ -1,6 +1,7 @@
 import { Account } from 'src/account/account.entity';
 import { HoaDon } from 'src/hoadon/hoadon.entity';
 import { HopDong } from 'src/hopdong/hopdong.entity';
+import { ThongBao } from 'src/thongbao/thongbao.entity';
 import {
   Column,
   Entity,
@@ -55,4 +56,7 @@ export class NhanVien {
 
   @ManyToOne(() => HopDong, (hopdong) => hopdong.sinhvViens)
   hopDongs: HopDong;
+
+  @ManyToOne(() => ThongBao, (thongbao) => thongbao.nhanvien)
+  thongBaos: HopDong[];
 }
