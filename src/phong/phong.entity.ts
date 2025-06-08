@@ -1,11 +1,12 @@
 import { HoaDon } from 'src/hoadon/hoadon.entity';
+import { HopDong } from 'src/hopdong/hopdong.entity';
 import { SinhVien } from 'src/sinhvien/sinhvien.entity';
 import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 
-@Entity('phong')
+@Entity('tbl_phong')
 export class Phong {
-  @PrimaryColumn({ type: 'varchar', length: 20, unique: true })
-  MaPhong: String;
+  @PrimaryColumn({ type: 'varchar', length: 20 })
+  MaPhong: string;
 
   @Column({ type: 'varchar', length: 50 })
   TenPhong: string;
@@ -33,4 +34,7 @@ export class Phong {
 
   @OneToMany(() => HoaDon, (hoadon) => hoadon.phongs)
   hoaDons: HoaDon[];
+
+  @OneToMany(() => HopDong, (hopdong) => hopdong.phongs)
+  hopDongs: HopDong[];
 }

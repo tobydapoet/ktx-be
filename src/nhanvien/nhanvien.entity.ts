@@ -1,15 +1,17 @@
 import { Account } from 'src/account/account.entity';
 import { HoaDon } from 'src/hoadon/hoadon.entity';
+import { HopDong } from 'src/hopdong/hopdong.entity';
 import {
   Column,
   Entity,
   JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
-@Entity()
+@Entity('tbl_nhanvien')
 export class NhanVien {
   @PrimaryColumn({ type: 'varchar', length: 20 })
   MaNV: string;
@@ -17,8 +19,8 @@ export class NhanVien {
   @Column({ type: 'varchar', length: 50 })
   TenNV: string;
 
-  // @Column({ type: 'varchar', length: 20, unique: true })
-  // Username: string;
+  @Column({ type: 'varchar', length: 20, unique: true })
+  Username: string;
 
   @Column({ type: 'varchar', length: 12, unique: true })
   Phone: string;
@@ -45,9 +47,12 @@ export class NhanVien {
   TrangThai: number;
 
   @OneToOne(() => Account, (account) => account.nhanvien)
-  @JoinColumn({ name: 'username' })
+  @JoinColumn({ name: 'Username' })
   account: Account;
 
   @OneToMany(() => HoaDon, (hoadon) => hoadon.nhanViens)
   hoaDons: HoaDon[];
+
+  @ManyToOne(() => HopDong, (hopdong) => hopdong.sinhvViens)
+  hopDongs: HopDong;
 }

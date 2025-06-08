@@ -5,10 +5,10 @@ import { Column, Entity, OneToOne, PrimaryColumn } from 'typeorm';
 @Entity('tbl_account')
 export class Account {
   @PrimaryColumn({ type: 'varchar', length: 20 })
-  username: string;
+  Username: string;
 
   @Column({ type: 'varchar', length: 20 })
-  password: string;
+  Password: string;
 
   @Column({ type: 'int' })
   ChucVu: number;

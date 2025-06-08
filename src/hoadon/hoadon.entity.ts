@@ -1,15 +1,8 @@
 import { NhanVien } from 'src/nhanvien/nhanvien.entity';
 import { Phong } from 'src/phong/phong.entity';
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  PrimaryColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 
-@Entity()
+@Entity('tbl_hoadon')
 export class HoaDon {
   @PrimaryColumn({ type: 'varchar', length: 11 })
   MaHD: string;
