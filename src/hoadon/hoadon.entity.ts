@@ -33,7 +33,7 @@ export class HoaDon {
 
   @ManyToOne(() => NhanVien, (nhanvien) => nhanvien.hoaDons)
   @JoinColumn({ name: 'MaNV' })
-  nhanViens: NhanVien;
+  nhanvien: NhanVien;
 
   @ManyToOne(() => Phong, (phong) => phong.hoaDons)
   @JoinColumn({ name: 'MaPhong' })
