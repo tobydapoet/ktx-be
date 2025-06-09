@@ -33,9 +33,10 @@ export class SinhvienController {
   }
 
   @Post('create')
-  async create(@Body() dto: CreateSinhVienDTO, password?: string) {
+  async create(@Body() body: any) {
+    const { Password, ...dto } = body;
     try {
-      const res = await this.sinhvienService.createSinhVien(dto, password);
+      const res = await this.sinhvienService.createSinhVien(dto, Password);
       if (res) {
         return {
           success: true,
@@ -55,10 +56,16 @@ export class SinhvienController {
   }
 
   @Put('update/:masv')
-  async update(@Param('masv') maSV: string, @Body() dto: UpdateSinhVienDTO) {
+  async update(@Param('masv') maSV: string, @Body() body: any) {
     try {
-      const res = this.sinhvienService.updateSinhVien(maSV, dto);
+      const { Password, ...dto } = body;
+      const res = await this.sinhvienService.updateSinhVien(
+        maSV,
+        dto,
+        Password,
+      );
       if (res) {
+        console.log('Body dto:', dto);
         return {
           success: true,
           data: res,
@@ -79,7 +86,7 @@ export class SinhvienController {
   @Put('approve/:masv')
   async approve(@Param('masv') maSV: string) {
     try {
-      const res = this.sinhvienService.approvedSinhVien(maSV);
+      const res = await this.sinhvienService.approvedSinhVien(maSV);
       if (res) {
         return {
           success: true,
@@ -101,7 +108,7 @@ export class SinhvienController {
   @Put('cancel/:masv')
   async cancel(@Param('masv') maSV: string) {
     try {
-      const res = this.sinhvienService.cancelledSinhVien(maSV);
+      const res = await this.sinhvienService.cancelledSinhVien(maSV);
       if (res) {
         return {
           success: true,

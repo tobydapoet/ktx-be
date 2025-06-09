@@ -17,16 +17,14 @@ export class AccountService {
 
   async Login(loginDTO: LoginDTO): Promise<Account | null> {
     return await this.accountRepository.findOne({
-      where: { Username: loginDTO.username, Password: loginDTO.password },
+      where: { Username: loginDTO.Username, Password: loginDTO.Password },
     });
   }
 
   async Register(registerDTO: RegisterDTO): Promise<Account> {
     const existing = await this.accountRepository.findOne({
       where: {
-        Username: registerDTO.username,
-        Password: registerDTO.password,
-        ChucVu: registerDTO.ChucVu,
+        Username: registerDTO.Username,
       },
     });
     if (existing) {
@@ -34,8 +32,8 @@ export class AccountService {
     }
 
     const newAccount = this.accountRepository.create({
-      Username: registerDTO.username,
-      Password: registerDTO.password,
+      Username: registerDTO.Username,
+      Password: registerDTO.Password,
       ChucVu: registerDTO.ChucVu,
       DateTime: new Date(),
       online: 0,

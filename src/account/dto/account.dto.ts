@@ -2,10 +2,10 @@ import { IsString, IsInt, IsOptional, IsDateString } from 'class-validator';
 
 export class AccountDTO {
   @IsString()
-  username: string;
+  Username: string;
 
   @IsString()
-  password: string;
+  Password: string;
 
   @IsInt()
   ChucVu: number;

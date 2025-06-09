@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SinhVien } from './sinhvien.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { CreateSinhVienDTO } from './dto/create_sinhvien.dto';
 import { UpdateSinhVienDTO } from './dto/update_sinhvien.dto';
 import { Phong } from 'src/phong/phong.entity';
@@ -27,6 +27,14 @@ export class SinhvienService {
     return await this.sinhVienRepository.findOne({ where: { MaSV: maSV } });
   }
 
+  async existCCCD(cccd: string): Promise<SinhVien | null> {
+    return await this.sinhVienRepository.findOne({ where: { CCCD: cccd } });
+  }
+
+  async existPhone(sdt: string): Promise<SinhVien | null> {
+    return await this.sinhVienRepository.findOne({ where: { Phone: sdt } });
+  }
+
   async createSinhVien(
     dto: CreateSinhVienDTO,
     password?: string,
@@ -40,8 +48,24 @@ export class SinhvienService {
       const existingSV = await queryRunner.manager.findOne(SinhVien, {
         where: { MaSV: dto.MaSV },
       });
+
+      const phong = await queryRunner.manager.findOne(Phong, {
+        where: { MaPhong: dto.MaPhong },
+      });
+      if (!phong) {
+        throw new Error('Phòng không tồn tại!');
+      }
+      if (phong.LoaiPhong !== dto.GioiTinh) {
+        throw new Error('Giới tính sinh viên không phù hợp với loại phòng!');
+      }
       if (existingSV) {
         throw new Error('Mã sinh viên đã được sử dụng!');
+      }
+      if (await this.existCCCD(dto.CCCD)) {
+        throw new Error('Số CCCD đã được sử dụng!');
+      }
+      if (await this.existPhone(dto.Phone)) {
+        throw new Error('Số điện thoại đã được sử dụng!');
       }
 
       if (password) {
@@ -94,6 +118,37 @@ export class SinhvienService {
 
     if (!existing) throw new Error('Sinh viên không tồn tại!');
 
+    if (
+      dto.CCCD &&
+      dto.CCCD !== existing.CCCD &&
+      (await this.existCCCD(dto.CCCD))
+    ) {
+      throw new Error('Số CCCD đã được sử dụng!');
+    }
+
+    if (
+      dto.Phone &&
+      dto.Phone !== existing.Phone &&
+      (await this.existPhone(dto.Phone))
+    ) {
+      throw new Error('Số điện thoại đã được sử dụng!');
+    }
+    if (dto.MaPhong && dto.MaPhong !== existing.MaPhong) {
+      if (existing.TrangThai === 0) {
+        dto.MaPhong = existing.MaPhong;
+      } else {
+        const newPhong = await this.phongRepository.findOne({
+          where: { MaPhong: dto.MaPhong },
+        });
+        if (!newPhong) throw new Error('Phòng mới không tồn tại!');
+        if (newPhong.LoaiPhong !== existing.GioiTinh) {
+          throw new Error(
+            'Loại phòng không phù hợp với giới tính của sinh viên!',
+          );
+        }
+      }
+    }
+
     const updatedSV = this.sinhVienRepository.merge(existing, dto);
 
     if (password) {
@@ -114,31 +169,33 @@ export class SinhvienService {
       }
     }
 
-    if (
-      dto.MaPhong &&
-      dto.MaPhong !== existing.MaPhong &&
-      existing.TrangThai === 2
-    ) {
-      const phongCu = await this.phongRepository.findOne({
-        where: { MaPhong: existing.MaPhong },
-      });
-
+    if (dto.MaPhong && dto.MaPhong !== existing.phong?.MaPhong) {
       const phongMoi = await this.phongRepository.findOne({
         where: { MaPhong: dto.MaPhong },
       });
 
       if (!phongMoi) throw new Error('Phòng mới không tồn tại');
 
-      if (phongCu) {
-        phongCu.SoSV = Math.max(0, phongCu.SoSV - 1);
-        await this.phongRepository.save(phongCu);
+      if (existing.TrangThai === 1) {
+        const phongCu = existing.phong;
+        if (phongCu) {
+          phongCu.SoSV = Math.max(0, phongCu.SoSV - 1);
+          await this.phongRepository.save(phongCu);
+        }
+
+        phongMoi.SoSV += 1;
+        await this.phongRepository.save(phongMoi);
       }
 
-      phongMoi.SoSV += 1;
-      await this.phongRepository.save(phongMoi);
+      updatedSV.phong = phongMoi;
+      updatedSV.MaPhong = dto.MaPhong;
     }
 
-    return await this.sinhVienRepository.save(updatedSV);
+    await this.sinhVienRepository.save(updatedSV);
+    return await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['account', 'phong'],
+    });
   }
 
   async approvedSinhVien(maSV: string) {
@@ -183,16 +240,9 @@ export class SinhvienService {
   }
 
   async searchSinhVien(keyword: string, type: string) {
-    const query = this.sinhVienRepository.createQueryBuilder('sv');
-    if (type === 'TenSV') {
-      query.where('sv.TenSV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'MaSV') {
-      query.where('sv.MaSV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'Username') {
-      query.where('sv.Username LIKE :keyword', { keyword: `%${keyword}%` });
-    } else {
-    }
-
-    return await query.getMany();
+    const res = await this.sinhVienRepository.find({
+      where: [{ MaSV: Like(`%${keyword}%`) }, { TenSV: Like(`%${keyword}%`) }],
+    });
+    return res;
   }
 }

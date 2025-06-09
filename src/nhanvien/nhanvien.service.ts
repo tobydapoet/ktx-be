@@ -24,6 +24,14 @@ export class NhanvienService {
     return await this.nhanvienRepository.findOne({ where: { MaNV: maNV } });
   }
 
+  async existCCCD(cccd: string): Promise<NhanVien | null> {
+    return await this.nhanvienRepository.findOne({ where: { CCCD: cccd } });
+  }
+
+  async existPhone(sdt: string): Promise<NhanVien | null> {
+    return await this.nhanvienRepository.findOne({ where: { Phone: sdt } });
+  }
+
   async createNhanvien(
     dto: CreateNhanVienDTO,
     password?: string,
@@ -39,6 +47,12 @@ export class NhanvienService {
       });
       if (existingSV) {
         throw new Error('Mã nhân viên đã được sử dụng!');
+      }
+      if (await this.existCCCD(dto.CCCD)) {
+        throw new Error('Số CCCD đã được sử dụng!');
+      }
+      if (await this.existPhone(dto.Phone)) {
+        throw new Error('Số điện thoại đã được sử dụng!');
       }
 
       let newAccount;
@@ -75,7 +89,11 @@ export class NhanvienService {
 
       await queryRunner.commitTransaction();
 
-      return savedSV;
+      const fullNhanVien = await queryRunner.manager.findOne(NhanVien, {
+        where: { MaNV: savedSV.MaNV },
+        relations: ['account'],
+      });
+      return fullNhanVien;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;
@@ -93,7 +111,22 @@ export class NhanvienService {
       where: { MaNV: maSV },
       relations: ['account'],
     });
-    if (!existing) throw new Error('Sinh viên không tồn tại!');
+    if (!existing) throw new Error('Nhân viên không tồn tại!');
+    if (
+      dto.CCCD &&
+      dto.CCCD !== existing.CCCD &&
+      (await this.existCCCD(dto.CCCD))
+    ) {
+      throw new Error('Số CCCD đã được sử dụng!');
+    }
+
+    if (
+      dto.Phone &&
+      dto.Phone !== existing.Phone &&
+      (await this.existPhone(dto.Phone))
+    ) {
+      throw new Error('Số điện thoại đã được sử dụng!');
+    }
 
     const updatedSV = this.nhanvienRepository.merge(existing, dto);
 
