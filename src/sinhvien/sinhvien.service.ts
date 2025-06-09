@@ -46,14 +46,14 @@ export class SinhvienService {
 
       if (password) {
         const existingAccount = await queryRunner.manager.findOne(Account, {
-          where: { Username: dto.UserName },
+          where: { Username: dto.Username },
         });
         if (existingAccount) {
           throw new Error('Username đã tồn tại!');
         }
 
         const newAccount = queryRunner.manager.create(Account, {
-          Username: dto.UserName,
+          Username: dto.Username,
           Password: password,
           ChucVu: 1,
           DateTime: new Date(),

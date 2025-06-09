@@ -8,7 +8,7 @@ export class SinhVienDTO {
   TenSV: string;
 
   @IsString()
-  UserName: string;
+  Username: string;
 
   @IsString()
   MaPhong: string;

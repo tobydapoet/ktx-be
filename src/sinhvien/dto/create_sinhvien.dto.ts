@@ -1,4 +1,4 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsBase64, IsInt, IsString } from 'class-validator';
 
 export class CreateSinhVienDTO {
   @IsString()
@@ -8,7 +8,7 @@ export class CreateSinhVienDTO {
   TenSV: string;
 
   @IsString()
-  UserName: string;
+  Username: string;
 
   @IsString()
   MaPhong: string;
@@ -28,12 +28,12 @@ export class CreateSinhVienDTO {
   @IsInt()
   GioiTinh: number;
 
-  @IsString()
+  @IsBase64()
   Image: string;
 
-  @IsString()
+  @IsBase64()
   ImageCCCDFront: string;
 
-  @IsString()
+  @IsBase64()
   ImageCCCDBack: string;
 }

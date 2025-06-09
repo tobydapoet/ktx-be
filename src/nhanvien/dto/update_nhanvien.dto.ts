@@ -5,7 +5,7 @@ export class UpdateNhanVienDTO {
   TenNV: string;
 
   @IsString()
-  UserName: string;
+  Username: string;
 
   @IsString()
   Phone: string;

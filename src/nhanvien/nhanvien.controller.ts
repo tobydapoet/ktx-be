@@ -23,8 +23,8 @@ export class NhanvienController {
   }
 
   @Get('search')
-  async search(@Query('keyword') keyword: string, @Query('type') type: string) {
-    return await this.nhanvienService.searchNhanVien(keyword, type);
+  async search(@Query('keyword') keyword: string) {
+    return await this.nhanvienService.searchNhanVien(keyword);
   }
 
   @Get(':manv')
@@ -33,9 +33,10 @@ export class NhanvienController {
   }
 
   @Post('create')
-  async create(@Body() dto: CreateNhanVienDTO, password?: string) {
+  async create(@Body() body: any) {
+    const { Password, ...dto } = body;
     try {
-      const res = await this.nhanvienService.createNhanvien(dto, password);
+      const res = await this.nhanvienService.createNhanvien(dto, Password);
       if (res) {
         return {
           success: true,
@@ -55,9 +56,14 @@ export class NhanvienController {
   }
 
   @Put('update/:manv')
-  async update(@Param('manv') maNV: string, @Body() dto: UpdateNhanVienDTO) {
+  async update(@Param('manv') maNV: string, @Body() body: any) {
     try {
-      const res = this.nhanvienService.updateNhanVien(maNV, dto);
+      const { Password, ...dto } = body;
+      const res = await this.nhanvienService.updateNhanVien(
+        maNV,
+        dto,
+        Password,
+      );
       if (res) {
         return {
           success: true,
@@ -79,7 +85,7 @@ export class NhanvienController {
   @Put('approve/:manv')
   async approve(@Param('manv') maNV: string) {
     try {
-      const res = this.nhanvienService.approvedNhanVien(maNV);
+      const res = await this.nhanvienService.approvedNhanVien(maNV);
       if (res) {
         return {
           success: true,
@@ -101,7 +107,7 @@ export class NhanvienController {
   @Put('cancel/:manv')
   async cancel(@Param('manv') maNV: string) {
     try {
-      const res = this.nhanvienService.cancelledNhanVien(maNV);
+      const res = await this.nhanvienService.cancelledNhanVien(maNV);
       if (res) {
         return {
           success: true,

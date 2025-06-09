@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NhanVien } from './nhanvien.entity';
 import { Account } from 'src/account/account.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNhanVienDTO } from './dto/create_nhanvien.dto';
 import { UpdateNhanVienDTO } from './dto/update_nhanvien.dto';
@@ -41,29 +41,34 @@ export class NhanvienService {
         throw new Error('Mã nhân viên đã được sử dụng!');
       }
 
+      let newAccount;
+
       if (password) {
         const existingAccount = await queryRunner.manager.findOne(Account, {
-          where: { Username: dto.UserName },
+          where: { Username: dto.Username },
         });
         if (existingAccount) {
           throw new Error('Username đã tồn tại!');
         }
 
-        const newAccount = queryRunner.manager.create(Account, {
-          Username: dto.UserName,
+        newAccount = queryRunner.manager.create(Account, {
+          Username: dto.Username,
           Password: password,
           ChucVu: 1,
           DateTime: new Date(),
           online: 0,
           log: '',
         });
-
-        await queryRunner.manager.save(Account, newAccount);
+        newAccount = await queryRunner.manager.save(Account, newAccount);
+      } else {
+        newAccount = null;
       }
 
       const newSV = queryRunner.manager.create(NhanVien, {
         ...dto,
+        Username: dto.Username,
         TrangThai: 0,
+        account: newAccount,
       });
 
       const savedSV = await queryRunner.manager.save(NhanVien, newSV);
@@ -143,17 +148,10 @@ export class NhanvienService {
     return await this.nhanvienRepository.save(nv);
   }
 
-  async searchNhanVien(keyword: string, type: string) {
-    const query = this.nhanvienRepository.createQueryBuilder('nv');
-    if (type === 'TenSV') {
-      query.where('nv.TenNV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'MaSV') {
-      query.where('nv.MaNV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'Username') {
-      query.where('nv.Username LIKE :keyword', { keyword: `%${keyword}%` });
-    } else {
-    }
-
-    return await query.getMany();
+  async searchNhanVien(keyword: string): Promise<NhanVien[]> {
+    const res = await this.nhanvienRepository.find({
+      where: [{ MaNV: Like(`%${keyword}%`) }, { TenNV: Like(`%${keyword}%`) }],
+    });
+    return res;
   }
 }

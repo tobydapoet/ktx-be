@@ -8,7 +8,7 @@ export class CreateNhanVienDTO {
   TenNV: string;
 
   @IsString()
-  UserName: string;
+  Username: string;
 
   @IsString()
   Phone: string;
