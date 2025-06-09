@@ -5,7 +5,6 @@ import { VanDe } from 'src/vande/vande.entity';
 import {
   Column,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
   OneToMany,
