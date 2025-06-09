@@ -55,7 +55,7 @@ export class NhanVien {
   @OneToMany(() => HoaDon, (hoadon) => hoadon.nhanvien)
   hoaDons: HoaDon[];
 
-  @ManyToOne(() => HopDong, (hopdong) => hopdong.nhanvien)
+  @OneToMany(() => HopDong, (hopdong) => hopdong.nhanvien)
   hopDongs: HopDong[];
 
   @OneToMany(() => ThongBao, (thongbao) => thongbao.nhanvien)

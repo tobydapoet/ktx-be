@@ -75,7 +75,11 @@ export class NhanvienService {
 
       await queryRunner.commitTransaction();
 
-      return savedSV;
+      const fullNhanVien = await queryRunner.manager.findOne(NhanVien, {
+        where: { MaNV: savedSV.MaNV },
+        relations: ['account'],
+      });
+      return fullNhanVien;
     } catch (error) {
       await queryRunner.rollbackTransaction();
       throw error;

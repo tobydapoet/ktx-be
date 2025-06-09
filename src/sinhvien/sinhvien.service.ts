@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SinhVien } from './sinhvien.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Like, Repository } from 'typeorm';
 import { CreateSinhVienDTO } from './dto/create_sinhvien.dto';
 import { UpdateSinhVienDTO } from './dto/update_sinhvien.dto';
 import { Phong } from 'src/phong/phong.entity';
@@ -114,31 +114,33 @@ export class SinhvienService {
       }
     }
 
-    if (
-      dto.MaPhong &&
-      dto.MaPhong !== existing.MaPhong &&
-      existing.TrangThai === 2
-    ) {
-      const phongCu = await this.phongRepository.findOne({
-        where: { MaPhong: existing.MaPhong },
-      });
-
+    if (dto.MaPhong && dto.MaPhong !== existing.phong?.MaPhong) {
       const phongMoi = await this.phongRepository.findOne({
         where: { MaPhong: dto.MaPhong },
       });
 
       if (!phongMoi) throw new Error('Phòng mới không tồn tại');
 
-      if (phongCu) {
-        phongCu.SoSV = Math.max(0, phongCu.SoSV - 1);
-        await this.phongRepository.save(phongCu);
+      if (existing.TrangThai === 1) {
+        const phongCu = existing.phong;
+        if (phongCu) {
+          phongCu.SoSV = Math.max(0, phongCu.SoSV - 1);
+          await this.phongRepository.save(phongCu);
+        }
+
+        phongMoi.SoSV += 1;
+        await this.phongRepository.save(phongMoi);
       }
 
-      phongMoi.SoSV += 1;
-      await this.phongRepository.save(phongMoi);
+      updatedSV.phong = phongMoi;
+      updatedSV.MaPhong = dto.MaPhong;
     }
 
-    return await this.sinhVienRepository.save(updatedSV);
+    await this.sinhVienRepository.save(updatedSV);
+    return await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['account', 'phong'],
+    });
   }
 
   async approvedSinhVien(maSV: string) {
@@ -183,16 +185,9 @@ export class SinhvienService {
   }
 
   async searchSinhVien(keyword: string, type: string) {
-    const query = this.sinhVienRepository.createQueryBuilder('sv');
-    if (type === 'TenSV') {
-      query.where('sv.TenSV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'MaSV') {
-      query.where('sv.MaSV LIKE :keyword', { keyword: `%${keyword}%` });
-    } else if (type === 'Username') {
-      query.where('sv.Username LIKE :keyword', { keyword: `%${keyword}%` });
-    } else {
-    }
-
-    return await query.getMany();
+    const res = await this.sinhVienRepository.find({
+      where: [{ MaSV: Like(`%${keyword}%`) }, { TenSV: Like(`%${keyword}%`) }],
+    });
+    return res;
   }
 }
