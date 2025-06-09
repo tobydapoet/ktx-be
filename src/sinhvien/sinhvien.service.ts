@@ -106,6 +106,16 @@ export class SinhvienService {
     }
   }
 
+  async getApproveSVInPhong(maPhong: string) {
+    return this.sinhVienRepository.find({
+      where: {
+        phong: { MaPhong: maPhong },
+        TrangThai: 1,
+      },
+      relations: ['phong'],
+    });
+  }
+
   async updateSinhVien(
     maSV: string,
     dto: Partial<UpdateSinhVienDTO>,
