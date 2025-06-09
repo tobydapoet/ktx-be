@@ -1,5 +1,11 @@
 import { NhanVien } from 'src/nhanvien/nhanvien.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('tbl_thongbao')
 export class ThongBao {
@@ -16,5 +22,6 @@ export class ThongBao {
   MaNV: string;
 
   @ManyToOne(() => NhanVien, (nhanvien) => nhanvien.thongBaos)
+  @JoinColumn({ name: 'MaNV' })
   nhanvien: NhanVien;
 }

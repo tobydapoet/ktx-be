@@ -1,4 +1,198 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SinhVien } from './sinhvien.entity';
+import { DataSource, Repository } from 'typeorm';
+import { CreateSinhVienDTO } from './dto/create_sinhvien.dto';
+import { UpdateSinhVienDTO } from './dto/update_sinhvien.dto';
+import { Phong } from 'src/phong/phong.entity';
+import { Account } from 'src/account/account.entity';
 
 @Injectable()
-export class SinhvienService {}
+export class SinhvienService {
+  constructor(
+    private dataSource: DataSource,
+    @InjectRepository(SinhVien)
+    private readonly sinhVienRepository: Repository<SinhVien>,
+    @InjectRepository(Phong)
+    private readonly phongRepository: Repository<Phong>,
+    @InjectRepository(Account)
+    private readonly accountRepository: Repository<Account>,
+  ) {}
+
+  async getAllSinhVien(): Promise<SinhVien[]> {
+    return await this.sinhVienRepository.find();
+  }
+
+  async getSinhVien(maSV: string): Promise<SinhVien | null> {
+    return await this.sinhVienRepository.findOne({ where: { MaSV: maSV } });
+  }
+
+  async createSinhVien(
+    dto: CreateSinhVienDTO,
+    password?: string,
+  ): Promise<SinhVien | null> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const existingSV = await queryRunner.manager.findOne(SinhVien, {
+        where: { MaSV: dto.MaSV },
+      });
+      if (existingSV) {
+        throw new Error('Mã sinh viên đã được sử dụng!');
+      }
+
+      if (password) {
+        const existingAccount = await queryRunner.manager.findOne(Account, {
+          where: { Username: dto.Username },
+        });
+        if (existingAccount) {
+          throw new Error('Username đã tồn tại!');
+        }
+
+        const newAccount = queryRunner.manager.create(Account, {
+          Username: dto.Username,
+          Password: password,
+          ChucVu: 1,
+          DateTime: new Date(),
+          online: 0,
+          log: '',
+        });
+
+        await queryRunner.manager.save(Account, newAccount);
+      }
+
+      const newSV = queryRunner.manager.create(SinhVien, {
+        ...dto,
+        TrangThai: 0,
+      });
+
+      const savedSV = await queryRunner.manager.save(SinhVien, newSV);
+
+      await queryRunner.commitTransaction();
+
+      return savedSV;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
+
+  async updateSinhVien(
+    maSV: string,
+    dto: Partial<UpdateSinhVienDTO>,
+    password?: string,
+  ): Promise<SinhVien | null> {
+    const existing = await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['account', 'phong'],
+    });
+
+    if (!existing) throw new Error('Sinh viên không tồn tại!');
+
+    const updatedSV = this.sinhVienRepository.merge(existing, dto);
+
+    if (password) {
+      if (existing.account) {
+        existing.account.Password = password;
+        await this.accountRepository.save(existing.account);
+      } else {
+        const newAccount = this.accountRepository.create({
+          Username: existing.Username,
+          Password: password,
+          ChucVu: 1,
+          DateTime: new Date(),
+          online: 0,
+          log: '',
+        });
+        await this.accountRepository.save(newAccount);
+        updatedSV.account = newAccount;
+      }
+    }
+
+    if (
+      dto.MaPhong &&
+      dto.MaPhong !== existing.MaPhong &&
+      existing.TrangThai === 2
+    ) {
+      const phongCu = await this.phongRepository.findOne({
+        where: { MaPhong: existing.MaPhong },
+      });
+
+      const phongMoi = await this.phongRepository.findOne({
+        where: { MaPhong: dto.MaPhong },
+      });
+
+      if (!phongMoi) throw new Error('Phòng mới không tồn tại');
+
+      if (phongCu) {
+        phongCu.SoSV = Math.max(0, phongCu.SoSV - 1);
+        await this.phongRepository.save(phongCu);
+      }
+
+      phongMoi.SoSV += 1;
+      await this.phongRepository.save(phongMoi);
+    }
+
+    return await this.sinhVienRepository.save(updatedSV);
+  }
+
+  async approvedSinhVien(maSV: string) {
+    const sv = await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['phong'],
+    });
+    if (!sv) {
+      throw new Error('Không tìm thấy sinh viên');
+    }
+
+    if (sv.TrangThai === 1) {
+      throw new Error('Sinh viên đã được duyệt trước đó');
+    }
+    if (sv.phong.SoSV === sv.phong.SoLuong) {
+      throw new Error('Hiện tại phòng đã đầy!');
+    }
+    if (sv.GioiTinh !== sv.phong.LoaiPhong) {
+      throw new Error('Giới tính không phù hợp!');
+    }
+    sv.phong.SoSV += 1;
+    await this.phongRepository.save(sv.phong);
+    sv.TrangThai = 1;
+    return await this.sinhVienRepository.save(sv);
+  }
+
+  async cancelledSinhVien(maSV: string) {
+    const sv = await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['phong'],
+    });
+    if (!sv) {
+      throw new Error('Không tìm thấy sinh viên');
+    }
+    if (sv.TrangThai === 2) {
+      throw new Error('Sinh viên đã được hủy trước đó');
+    }
+    sv.phong.SoSV -= 1;
+    await this.phongRepository.save(sv.phong);
+    sv.TrangThai = 2;
+    return await this.sinhVienRepository.save(sv);
+  }
+
+  async searchSinhVien(keyword: string, type: string) {
+    const query = this.sinhVienRepository.createQueryBuilder('sv');
+    if (type === 'TenSV') {
+      query.where('sv.TenSV LIKE :keyword', { keyword: `%${keyword}%` });
+    } else if (type === 'MaSV') {
+      query.where('sv.MaSV LIKE :keyword', { keyword: `%${keyword}%` });
+    } else if (type === 'Username') {
+      query.where('sv.Username LIKE :keyword', { keyword: `%${keyword}%` });
+    } else {
+    }
+
+    return await query.getMany();
+  }
+}

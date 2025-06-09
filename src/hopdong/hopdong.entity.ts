@@ -29,9 +29,9 @@ export class HopDong {
 
   @ManyToOne(() => NhanVien, (nhanvien) => nhanvien.hopDongs)
   @JoinColumn({ name: 'MaNV', referencedColumnName: 'MaNV' })
-  nhanViens: NhanVien;
+  nhanvien: NhanVien;
 
   @ManyToOne(() => SinhVien, (sinhvien) => sinhvien.hopDongs)
   @JoinColumn({ name: 'MaSV', referencedColumnName: 'MaSV' })
-  sinhvViens: NhanVien;
+  sinhvien: SinhVien;
 }

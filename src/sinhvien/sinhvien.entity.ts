@@ -1,12 +1,13 @@
 import { Account } from 'src/account/account.entity';
 import { HopDong } from 'src/hopdong/hopdong.entity';
 import { Phong } from 'src/phong/phong.entity';
+import { VanDe } from 'src/vande/vande.entity';
 import {
   Column,
   Entity,
-  Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
@@ -60,6 +61,9 @@ export class SinhVien {
   @JoinColumn({ name: 'Username', referencedColumnName: 'Username' })
   account: Account;
 
-  @ManyToOne(() => HopDong, (hopdong) => hopdong.sinhvViens)
-  hopDongs: HopDong;
+  @OneToMany(() => HopDong, (hopdong) => hopdong.sinhvien)
+  hopDongs: HopDong[];
+
+  @OneToMany(() => VanDe, (vande) => vande.sinhvien)
+  vanDes: VanDe[];
 }
