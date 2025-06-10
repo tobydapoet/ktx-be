@@ -17,11 +17,14 @@ export class NhanvienService {
   ) {}
 
   async getAllNhanVien(): Promise<NhanVien[]> {
-    return await this.nhanvienRepository.find();
+    return await this.nhanvienRepository.find({ relations: ['account'] });
   }
 
   async getNhanVien(maNV: string): Promise<NhanVien | null> {
-    return await this.nhanvienRepository.findOne({ where: { MaNV: maNV } });
+    return await this.nhanvienRepository.findOne({
+      where: { MaNV: maNV },
+      relations: ['account'],
+    });
   }
 
   async existCCCD(cccd: string): Promise<NhanVien | null> {

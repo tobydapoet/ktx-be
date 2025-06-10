@@ -18,6 +18,9 @@ export class ThongBao {
   @Column({ type: 'varchar', length: 2550 })
   NoiDung: string;
 
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  ThoiGian: Date;
+
   @Column({ type: 'varchar', length: 20 })
   MaNV: string;
 
