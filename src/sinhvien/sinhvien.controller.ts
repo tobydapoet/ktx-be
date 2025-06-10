@@ -21,8 +21,8 @@ export class SinhvienController {
   }
 
   @Get('search')
-  async search(@Query('keyword') keyword: string, @Query('type') type: string) {
-    return await this.sinhvienService.searchSinhVien(keyword, type);
+  async search(@Query('keyword') keyword: string) {
+    return await this.sinhvienService.searchSinhVien(keyword);
   }
 
   @Get('/phong/:maphong')

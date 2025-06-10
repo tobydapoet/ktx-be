@@ -20,11 +20,16 @@ export class SinhvienService {
   ) {}
 
   async getAllSinhVien(): Promise<SinhVien[]> {
-    return await this.sinhVienRepository.find();
+    return await this.sinhVienRepository.find({
+      relations: ['phong', 'account'],
+    });
   }
 
   async getSinhVien(maSV: string): Promise<SinhVien | null> {
-    return await this.sinhVienRepository.findOne({ where: { MaSV: maSV } });
+    return await this.sinhVienRepository.findOne({
+      where: { MaSV: maSV },
+      relations: ['phong', 'account'],
+    });
   }
 
   async existCCCD(cccd: string): Promise<SinhVien | null> {
@@ -249,7 +254,7 @@ export class SinhvienService {
     return await this.sinhVienRepository.save(sv);
   }
 
-  async searchSinhVien(keyword: string, type: string) {
+  async searchSinhVien(keyword: string) {
     const res = await this.sinhVienRepository.find({
       where: [{ MaSV: Like(`%${keyword}%`) }, { TenSV: Like(`%${keyword}%`) }],
     });
