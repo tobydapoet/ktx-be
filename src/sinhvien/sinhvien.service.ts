@@ -60,7 +60,7 @@ export class SinhvienService {
       if (!phong) {
         throw new Error('Phòng không tồn tại!');
       }
-      if (phong.LoaiPhong !== dto.GioiTinh) {
+      if (Number(phong.LoaiPhong) !== Number(dto.GioiTinh)) {
         throw new Error('Giới tính sinh viên không phù hợp với loại phòng!');
       }
       if (existingSV) {
