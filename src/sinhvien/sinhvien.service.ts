@@ -257,6 +257,7 @@ export class SinhvienService {
   async searchSinhVien(keyword: string) {
     const res = await this.sinhVienRepository.find({
       where: [{ MaSV: Like(`%${keyword}%`) }, { TenSV: Like(`%${keyword}%`) }],
+      relations: ['account', 'phong'],
     });
     return res;
   }
