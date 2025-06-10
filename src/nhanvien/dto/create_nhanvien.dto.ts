@@ -1,4 +1,4 @@
-import { IsInt, IsString } from 'class-validator';
+import { IsBase64, IsInt, IsString } from 'class-validator';
 
 export class CreateNhanVienDTO {
   @IsString()
@@ -22,12 +22,12 @@ export class CreateNhanVienDTO {
   @IsInt()
   GioiTinh: number;
 
-  @IsString()
+  @IsBase64()
   Image: string;
 
-  @IsString()
+  @IsBase64()
   ImageCCCDFront: string;
 
-  @IsString()
+  @IsBase64()
   ImageCCCDBack: string;
 }

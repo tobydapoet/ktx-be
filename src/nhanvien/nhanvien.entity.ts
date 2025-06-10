@@ -36,14 +36,14 @@ export class NhanVien {
   @Column({ type: 'int' })
   GioiTinh: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  Image: string;
+  @Column({ type: 'blob' })
+  Image: Buffer;
 
-  @Column({ type: 'varchar', length: 255 })
-  ImageCCCDFont: string;
+  @Column({ type: 'blob' })
+  ImageCCCDFront: Buffer;
 
-  @Column({ type: 'varchar', length: 255 })
-  ImageCCCDBack: string;
+  @Column({ type: 'blob' })
+  ImageCCCDBack: Buffer;
 
   @Column({ type: 'int', default: 0 })
   TrangThai: number;
