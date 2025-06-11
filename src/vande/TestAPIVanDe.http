@@ -1,0 +1,37 @@
+### API Vấn Đề
+### Cài đặt extension REST Client trong Visual Studio Code để chạy các yêu cầu HTTP này
+### Lấy tất cả vấn đề
+GET http://localhost:3000/vande
+
+### Tìm kiếm vấn đề theo từ khóa Tieu đề , nội dung , ma sinh viên , ma nhan vien , phản hồi hoặc ngày tháng năm 
+### ngày tháng năm có định dạng YYYY-MM-DD hoặc YYYY-MM 
+GET http://localhost:3000/vande/search?keyword=2025-06
+
+### Lấy chi tiết vấn đề theo mã , mã vấn đề là một số nguyên tự tăng 
+
+GET http://localhost:3000/vande/3
+
+### Tạo mới vấn đề yêu cầu các trường TieuDe, NoiDung, MaSV
+### Thời gian tạo sẽ tự động lấy thời gian hiện tại
+
+POST http://localhost:3000/vande/create
+Content-Type: application/json
+
+{
+    "TieuDe": "Tiêu đề mẫu",
+    "NoiDung": "Nội dung vấn đề mẫu",
+    "MaSV": "SV01"
+}
+
+### Cập nhật vấn đề
+PUT http://localhost:3000/vande/update/1
+Content-Type: application/json
+
+{
+  "TieuDe": "Tiêu đề đã cập nhật",
+  "NoiDung": "Nội dung đã cập nhật",
+  "PhanHoi": "Phản hồi mới"
+}
+
+### Xóa vấn đề
+DELETE http://localhost:3000/vande/delete/1
