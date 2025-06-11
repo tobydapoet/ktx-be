@@ -1,0 +1,45 @@
+### Lấy tất cả hóa đơn
+GET http://localhost:3000/hoadon
+
+### Tìm kiếm hóa đơn theo từ khóa
+GET http://localhost:3000/hoadon/search?MaHD=HD001
+
+### Lấy chi tiết hóa đơn theo mã
+GET http://localhost:3000/HoaDon/HD001
+
+### Lấy chi tiết hóa đơn theo mã
+GET http://localhost:3000/hoadon/HD002
+
+### Tạo mới hóa đơn
+POST http://localhost:3000/hoadon/create
+Content-Type: application/json
+
+{
+  "MaHD": "HD001",
+  "SoDien": 100,
+  "GiaDien": 3500,
+  "SoNuoc": 50,
+  "GiaNuoc": 15000,
+  "GiaPhong": 2000000,
+  "ChiPhiKhac": 50000,
+  "MaPhong": "P101",
+  "MaNV": "NV001"
+}
+
+### Cập nhật hóa đơn
+PUT http://localhost:3000/hoadon/update/HD001
+Content-Type: application/json
+
+{
+  "SoDien": 120,
+  "GiaDien": 3600,
+  "SoNuoc": 55,
+  "GiaNuoc": 15500,
+  "GiaPhong": 2100000,
+  "ChiPhiKhac": 60000,
+  "MaPhong": "P101",
+  "MaNV": "NV001"
+}
+
+### Xóa hóa đơn
+DELETE http://localhost:3000/hoadon/delete/HD001

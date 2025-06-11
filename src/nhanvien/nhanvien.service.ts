@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { NhanVien } from './nhanvien.entity';
 import { Account } from 'src/account/account.entity';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, DeepPartial, Like, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreateNhanVienDTO } from './dto/create_nhanvien.dto';
 import { UpdateNhanVienDTO } from './dto/update_nhanvien.dto';
@@ -81,14 +81,29 @@ export class NhanvienService {
         newAccount = null;
       }
 
-      const newSV = queryRunner.manager.create(NhanVien, {
-        ...dto,
-        Username: dto.Username,
-        TrangThai: 0,
-        account: newAccount,
-      });
+      // const newNV = queryRunner.manager.create(NhanVien, {
+      //   ...dto,
+      //   Username: dto.Username,
+      //   TrangThai: 0,
+      // });
 
-      const savedSV = await queryRunner.manager.save(NhanVien, newSV);
+      function base64ToBuffer(data: string): Buffer | null {
+        if (!data) return null;
+        const base64 = data.includes(',') ? data.split(',')[1] : data;
+        return Buffer.from(base64, 'base64');
+      }
+
+      const newNV = queryRunner.manager.create(NhanVien, {
+        ...dto,
+        Image: base64ToBuffer(dto.Image),
+        ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
+        ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
+        account: newAccount,
+
+        TrangThai: 0,
+      } as DeepPartial<NhanVien>);
+
+      const savedSV = await queryRunner.manager.save(NhanVien, newNV);
 
       await queryRunner.commitTransaction();
 
@@ -131,7 +146,33 @@ export class NhanvienService {
       throw new Error('Số điện thoại đã được sử dụng!');
     }
 
-    const updatedSV = this.nhanvienRepository.merge(existing, dto);
+    function base64ToBuffer(data?: string): Buffer | undefined {
+      if (!data) return undefined;
+      const base64 = data.includes(',') ? data.split(',')[1] : data;
+      return Buffer.from(base64, 'base64');
+    }
+
+    if (dto.Image) {
+      const buffer = base64ToBuffer(dto.Image);
+      if (buffer) existing.Image = buffer;
+    }
+    if (dto.ImageCCCDFront) {
+      const buffer = base64ToBuffer(dto.ImageCCCDFront);
+      if (buffer) existing.ImageCCCDFront = buffer;
+    }
+    if (dto.ImageCCCDBack) {
+      const buffer = base64ToBuffer(dto.ImageCCCDBack);
+      if (buffer) existing.ImageCCCDBack = buffer;
+    }
+
+    const updateData: DeepPartial<NhanVien> = {
+      ...dto,
+      Image: base64ToBuffer(dto.Image),
+      ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
+      ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
+    };
+
+    const updatedSV = this.nhanvienRepository.merge(existing, updateData);
 
     if (password) {
       if (existing.account) {

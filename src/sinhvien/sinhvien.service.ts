@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SinhVien } from './sinhvien.entity';
-import { DataSource, Like, Repository } from 'typeorm';
+import { DataSource, DeepPartial, Like, Repository } from 'typeorm';
 import { CreateSinhVienDTO } from './dto/create_sinhvien.dto';
 import { UpdateSinhVienDTO } from './dto/update_sinhvien.dto';
 import { Phong } from 'src/phong/phong.entity';
@@ -60,7 +60,7 @@ export class SinhvienService {
       if (!phong) {
         throw new Error('Phòng không tồn tại!');
       }
-      if (phong.LoaiPhong !== dto.GioiTinh) {
+      if (Number(phong.LoaiPhong) !== Number(dto.GioiTinh)) {
         throw new Error('Giới tính sinh viên không phù hợp với loại phòng!');
       }
       if (existingSV) {
@@ -93,10 +93,19 @@ export class SinhvienService {
         await queryRunner.manager.save(Account, newAccount);
       }
 
+      function base64ToBuffer(data: string): Buffer | null {
+        if (!data) return null;
+        const base64 = data.includes(',') ? data.split(',')[1] : data;
+        return Buffer.from(base64, 'base64');
+      }
+
       const newSV = queryRunner.manager.create(SinhVien, {
         ...dto,
+        Image: base64ToBuffer(dto.Image),
+        ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
+        ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
         TrangThai: 0,
-      });
+      } as DeepPartial<SinhVien>);
 
       const savedSV = await queryRunner.manager.save(SinhVien, newSV);
 
@@ -164,7 +173,33 @@ export class SinhvienService {
       }
     }
 
-    const updatedSV = this.sinhVienRepository.merge(existing, dto);
+    function base64ToBuffer(data?: string): Buffer | undefined {
+      if (!data) return undefined;
+      const base64 = data.includes(',') ? data.split(',')[1] : data;
+      return Buffer.from(base64, 'base64');
+    }
+
+    if (dto.Image) {
+      const buffer = base64ToBuffer(dto.Image);
+      if (buffer) existing.Image = buffer;
+    }
+    if (dto.ImageCCCDFront) {
+      const buffer = base64ToBuffer(dto.ImageCCCDFront);
+      if (buffer) existing.ImageCCCDFront = buffer;
+    }
+    if (dto.ImageCCCDBack) {
+      const buffer = base64ToBuffer(dto.ImageCCCDBack);
+      if (buffer) existing.ImageCCCDBack = buffer;
+    }
+
+    const updateData: DeepPartial<SinhVien> = {
+      ...dto,
+      Image: base64ToBuffer(dto.Image),
+      ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
+      ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
+    };
+
+    const updatedSV = this.sinhVienRepository.merge(existing, updateData);
 
     if (password) {
       if (existing.account) {
@@ -257,6 +292,7 @@ export class SinhvienService {
   async searchSinhVien(keyword: string) {
     const res = await this.sinhVienRepository.find({
       where: [{ MaSV: Like(`%${keyword}%`) }, { TenSV: Like(`%${keyword}%`) }],
+      relations: ['account', 'phong'],
     });
     return res;
   }

@@ -25,6 +25,11 @@ export class SinhvienController {
     return await this.sinhvienService.searchSinhVien(keyword);
   }
 
+  @Get(':masv')
+  async getSV(@Param('masv') maSV: string) {
+    return await this.sinhvienService.getSinhVien(maSV);
+  }
+
   @Get('/phong/:maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     console.log('MaPhong nhận được:', maPhong);

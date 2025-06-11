@@ -47,6 +47,7 @@ export class ThongbaoService {
   async deleteThongBao(maThongBao: number): Promise<ThongBao | null> {
     const existing = await this.thongBaoRepository.findOne({
       where: { MaTB: maThongBao },
+      relations: ['nhanvien'],
     });
     if (!existing) return null;
 
@@ -62,6 +63,7 @@ export class ThongbaoService {
     } else if (type === 'Nội dung') {
       return await this.thongBaoRepository.find({
         where: { NoiDung: Like(`%${keyword}%`) },
+        relations: ['nhanvien'],
       });
     }
     return [];
