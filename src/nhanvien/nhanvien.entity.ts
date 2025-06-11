@@ -2,6 +2,7 @@ import { Account } from 'src/account/account.entity';
 import { HoaDon } from 'src/hoadon/hoadon.entity';
 import { HopDong } from 'src/hopdong/hopdong.entity';
 import { ThongBao } from 'src/thongbao/thongbao.entity';
+import { VanDe } from 'src/vande/vande.entity';
 import {
   Column,
   Entity,
@@ -35,14 +36,14 @@ export class NhanVien {
   @Column({ type: 'int' })
   GioiTinh: number;
 
-  @Column({ type: 'varchar', length: 255 })
-  Image: string;
+  @Column({ type: 'blob' })
+  Image: Buffer;
 
-  @Column({ type: 'varchar', length: 255 })
-  ImageCCCDFont: string;
+  @Column({ type: 'blob' })
+  ImageCCCDFront: Buffer;
 
-  @Column({ type: 'varchar', length: 255 })
-  ImageCCCDBack: string;
+  @Column({ type: 'blob' })
+  ImageCCCDBack: Buffer;
 
   @Column({ type: 'int', default: 0 })
   TrangThai: number;
@@ -51,12 +52,15 @@ export class NhanVien {
   @JoinColumn({ name: 'Username' })
   account: Account;
 
-  @OneToMany(() => HoaDon, (hoadon) => hoadon.nhanViens)
+  @OneToMany(() => HoaDon, (hoadon) => hoadon.nhanvien)
   hoaDons: HoaDon[];
 
-  @ManyToOne(() => HopDong, (hopdong) => hopdong.sinhvViens)
-  hopDongs: HopDong;
+  @OneToMany(() => HopDong, (hopdong) => hopdong.nhanvien)
+  hopDongs: HopDong[];
 
-  @ManyToOne(() => ThongBao, (thongbao) => thongbao.nhanvien)
-  thongBaos: HopDong[];
+  @OneToMany(() => ThongBao, (thongbao) => thongbao.nhanvien)
+  thongBaos: ThongBao[];
+
+  @OneToMany(() => VanDe, (vande) => vande.nhanvien)
+  vanDes: VanDe[];
 }

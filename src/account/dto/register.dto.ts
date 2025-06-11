@@ -2,10 +2,10 @@ import { IsInt, IsString } from 'class-validator';
 
 export class RegisterDTO {
   @IsString()
-  username: string;
+  Username: string;
 
   @IsString()
-  password: string;
+  Password: string;
 
   @IsInt()
   ChucVu: number;
