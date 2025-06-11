@@ -19,11 +19,11 @@ export class VanDe {
   @Column({ type: 'varchar', length: 2550 })
   NoiDung: string;
 
-  @Column({ type: 'varchar', length: 2550 })
+  @Column({ type: 'varchar', length: 2550, nullable: true })
   PhanHoi: string;
 
-  @Column({ type: 'varchar', length: 20 })
-  MaNV: string;
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  MaNV: string | null;
 
   @Column({ type: 'varchar', length: 20 })
   MaSV: string;
