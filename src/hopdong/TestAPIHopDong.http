@@ -2,43 +2,29 @@
 ### Lấy tất cả hợp đồng
 GET http://localhost:3000/hopdong
 
-### Tạo mới hợp đồng
-POST http://localhost:3000/hopdong
+### Tạo mới hợp đồng 
+POST http://localhost:3000/hopdong/Create
 Content-Type: application/json
 
 {
-  "MaHD": "HD06",
-  "MaPhong": "P101",
-  "NgayBD": "2025-06-11",
-  "NgayKT": "2025-12-11",
+  "MaHD": "HD07",
+  "MaPhong": "P102",
+  "NgayBD": "2025-07-01",
+  "NgayKT": "2025-12-31",
   "MaSV": "SV01",
-  "MaNV": "nhanvien10"
+  "MaNV": "nhanvien11"
 }
 
 ### Cập nhật hợp đồng
-PUT http://localhost:3000/hopdong/HD06
+PUT http://localhost:3000/hopdong/HD07
 Content-Type: application/json
 
 {
   "NgayKT": "2025-12-31",
-  "MaNV": "nhanvien10"
+  "MaNV": "nhanvien11"
 }
 
 ### Xóa hợp đồng
-DELETE http://localhost:3000/hopdong/HD02
-
-### Tìm kiếm hợp đồng theo mã hợp đồng
-GET http://localhost:3000/hopdong/search?MaHD=HD03
-
-### Tìm kiếm hợp đồng theo mã phòng
-GET http://localhost:3000/hopdong/search?MaPhong=P105
-
-### Tìm kiếm hợp đồng theo mã sinh viên
-GET http://localhost:3000/hopdong/search?MaSV=SV011
-
-
-### Tìm kiếm hợp đồng theo mã nhân viên
-GET http://localhost:3000/hopdong/search?MaNV=nhanvien1
-
-### Tìm kiếm hợp đồng theo tháng
-GET http://localhost:3000/hopdong/search?Thang=5&Nam=2025
+DELETE http://localhost:3000/hopdong/HD07
+### Tìm kiếm hợp đồng theo keyword
+GET http://localhost:3000/hopdong/search?keyword=01

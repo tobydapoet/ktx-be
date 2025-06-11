@@ -16,14 +16,19 @@ import { UpdateHopDongDto } from './dto/update_hopdong.dto';
 export class HopdongController {
   constructor(private readonly hopdongService: HopdongService) {}
 
-  @Post()
-  create(@Body() createHopDongDto: CreateHopDongDto) {
+  @Post('Create')
+  createHopDong(@Body() createHopDongDto: CreateHopDongDto) {
     return this.hopdongService.create(createHopDongDto);
   }
 
   @Get()
   findAll() {
     return this.hopdongService.findAll();
+  }
+
+  @Get('search')
+  searchByKeyword(@Query('keyword') keyword: string) {
+    return this.hopdongService.searchHopDong(keyword);
   }
 
   @Put(':MaHD')
@@ -37,16 +42,5 @@ export class HopdongController {
   @Delete(':MaHD')
   remove(@Param('MaHD') MaHD: string) {
     return this.hopdongService.remove(MaHD);
-  }
-
-  @Get('search')
-  search(
-    @Query('MaHD') MaHD?: string,
-    @Query('MaPhong') MaPhong?: string,
-    @Query('MaSV') MaSV?: string,
-    @Query('MaNV') MaNV?: string,
-    @Query('Thang') Thang?: string,
-  ) {
-    return this.hopdongService.search({ MaHD, MaPhong, MaSV, MaNV, Thang });
   }
 }
