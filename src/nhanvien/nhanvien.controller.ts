@@ -27,6 +27,11 @@ export class NhanvienController {
     return await this.nhanvienService.searchNhanVien(keyword);
   }
 
+  @Get('user/:username')
+  async getWithUser(@Param('username') username: string) {
+    return await this.nhanvienService.getWithUserName(username);
+  }
+
   @Get(':manv')
   async getSV(@Param('manv') maNV: string) {
     return await this.nhanvienService.getNhanVien(maNV);
