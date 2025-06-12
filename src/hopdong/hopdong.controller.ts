@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   Query,
+  NotFoundException,
 } from '@nestjs/common';
 import { HopdongService } from './hopdong.service';
 import { CreateHopDongDto } from './dto/create_hopdong.dto';
@@ -42,5 +43,14 @@ export class HopdongController {
   @Delete(':MaHD')
   remove(@Param('MaHD') MaHD: string) {
     return this.hopdongService.remove(MaHD);
+  }
+
+  @Get(':MaHD')
+  async getHopDong(@Param('MaHD') MaHD: string) {
+    try {
+      return await this.hopdongService.findOne(MaHD);
+    } catch (error) {
+      throw new NotFoundException(error.message);
+    }
   }
 }

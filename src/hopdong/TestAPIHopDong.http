@@ -11,8 +11,8 @@ Content-Type: application/json
   "MaPhong": "P102",
   "NgayBD": "2025-07-01",
   "NgayKT": "2025-12-31",
-  "MaSV": "SV01",
-  "MaNV": "nhanvien11"
+  "MaSV": "SV0012",
+  "MaNV": "nhanvien10"
 }
 
 ### Cập nhật hợp đồng
@@ -21,7 +21,7 @@ Content-Type: application/json
 
 {
   "NgayKT": "2025-12-31",
-  "MaNV": "nhanvien11"
+  "MaNV": "nhanvien10"
 }
 
 ### Xóa hợp đồng
