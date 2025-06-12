@@ -27,6 +27,13 @@ export class NhanvienService {
     });
   }
 
+  async getWithUserName(username: string): Promise<NhanVien | null> {
+    return await this.nhanvienRepository.findOne({
+      where: { Username: username },
+      relations: ['account'],
+    });
+  }
+
   async existCCCD(cccd: string): Promise<NhanVien | null> {
     return await this.nhanvienRepository.findOne({ where: { CCCD: cccd } });
   }
