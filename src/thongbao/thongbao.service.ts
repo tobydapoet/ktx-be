@@ -59,6 +59,7 @@ export class ThongbaoService {
     if (type === 'Tiêu đề') {
       return await this.thongBaoRepository.find({
         where: { TieuDe: Like(`%${keyword}%`) },
+        relations: ['nhanvien'],
       });
     } else if (type === 'Nội dung') {
       return await this.thongBaoRepository.find({
