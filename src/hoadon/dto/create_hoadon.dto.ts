@@ -28,4 +28,12 @@ export class CreateHoaDonDTO {
 
   @IsString()
   MaNV: string;
+
+  @IsString()
+  @IsOptional()
+  NgayLap?: string;
+
+  @IsString()
+  @IsOptional()
+  HanNop?: string;
 }

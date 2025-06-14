@@ -20,23 +20,48 @@ export class HoadonService {
   ) {}
 
   // Lấy tất cả hóa đơn (chỉ trạng thái hiển thị)
-  async getAllHoaDon(): Promise<HoaDon[]> {
-    return this.hoadonRepository.find({
+  async getAllHoaDon(): Promise<any[]> {
+    const list = await this.hoadonRepository.find({
       where: { TrangThai: 1 },
-      relations: ['nhanvien', 'phongs'],
+      relations: ['nhanvien'],
     });
+    return list.map(hd => ({
+      MaHD: hd.MaHD,
+      SoDien: hd.SoDien,
+      GiaDien: hd.GiaDien,
+      SoNuoc: hd.SoNuoc,
+      GiaNuoc: hd.GiaNuoc,
+      GiaPhong: hd.GiaPhong,
+      ChiPhiKhac: hd.ChiPhiKhac,
+      MaPhong: hd.MaPhong,
+      MaNV: hd.MaNV,
+      NgayLap: hd.NgayLap,
+      HanNop: hd.HanNop,
+      nhanvien: hd.nhanvien ? { MaNV: hd.nhanvien.MaNV, TenNV: hd.nhanvien.TenNV } : undefined,
+      // Không trả về phongs, chiTiet, các trường không cần thiết
+    }));
   }
 
   // Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
   async getHoaDonWithChiTiet(maHD: string) {
-    const hoadon = await this.hoadonRepository.findOne({ where: { MaHD: maHD }, relations: ['nhanvien', 'phongs'] });
+    const hoadon = await this.hoadonRepository.findOne({ where: { MaHD: maHD }, relations: ['nhanvien'] });
     if (!hoadon) return null;
+    // Chỉ lấy các trường cần thiết của nhân viên
+    let nhanvien: any = undefined;
+    if (hoadon.nhanvien) {
+      nhanvien = {
+        MaNV: hoadon.nhanvien.MaNV,
+        TenNV: hoadon.nhanvien.TenNV
+      };
+    }
     const chiTiet = await this.chiTietHoaDonRepository.find({
       where: { MaHD: maHD },
       relations: ['sinhvien'],
     });
     return {
       ...hoadon,
+      nhanvien,
+      phongs: undefined, // Bỏ không trả về phongs
       chiTiet: chiTiet.map(ct => ({
         MaSV: ct.MaSV,
         TenSV: ct.sinhvien?.TenSV,
@@ -48,7 +73,12 @@ export class HoadonService {
 
   // Tạo mới hóa đơn và tự động tạo chi tiết cho từng sinh viên trong phòng
   async createHoaDonAndAutoChiTiet(dto: CreateHoaDonDTO) {
-    const hoadon = await this.hoadonRepository.save(dto);
+    const hoaDonEntity = this.hoadonRepository.create({
+      ...dto,
+      NgayLap: dto.NgayLap ? new Date(dto.NgayLap) : new Date(),
+      HanNop: dto.HanNop ? new Date(dto.HanNop) : undefined,
+    });
+    const hoadon = await this.hoadonRepository.save(hoaDonEntity);
     const sinhViens = await this.sinhVienRepository.find({ where: { MaPhong: dto.MaPhong } });
     if (!sinhViens || sinhViens.length === 0) throw new Error('Không có sinh viên nào trong phòng này!');
     const tongTien = dto.GiaPhong + (dto.SoDien * dto.GiaDien) + (dto.SoNuoc * dto.GiaNuoc) + (dto.ChiPhiKhac || 0);
@@ -66,7 +96,12 @@ export class HoadonService {
 
   // Tạo mới hóa đơn và chi tiết thủ công
   async createHoaDonWithChiTiet(dto: { hoadon: CreateHoaDonDTO, chiTiet: CreateChiTietHoaDonDTO[] }) {
-    const hoadon = await this.hoadonRepository.save(dto.hoadon);
+    const hoaDonEntity = this.hoadonRepository.create({
+      ...dto.hoadon,
+      NgayLap: dto.hoadon.NgayLap ? new Date(dto.hoadon.NgayLap) : new Date(),
+      HanNop: dto.hoadon.HanNop ? new Date(dto.hoadon.HanNop) : undefined,
+    });
+    const hoadon = await this.hoadonRepository.save(hoaDonEntity);
     const chiTietArr = dto.chiTiet.map(ct => this.chiTietHoaDonRepository.create({
       ...ct,
       MaHD: hoadon.MaHD,
@@ -80,15 +115,23 @@ export class HoadonService {
   async updateHoaDon(maHD: string, dto: Partial<UpdateHoaDonDTO>) {
     const existing = await this.hoadonRepository.findOne({ where: { MaHD: maHD } });
     if (!existing) throw new Error('Hóa đơn không tồn tại!');
-    const result = this.hoadonRepository.merge(existing, dto);
+    const result = this.hoadonRepository.merge(existing, {
+      ...dto,
+      NgayLap: dto.NgayLap ? new Date(dto.NgayLap) : existing.NgayLap,
+      HanNop: dto.HanNop ? new Date(dto.HanNop) : existing.HanNop,
+    });
     return await this.hoadonRepository.save(result);
   }
 
-  // Cập nhật chi tiết hóa đơn
+  // Cập nhật chi tiết hóa đơn, chỉ cho phép cập nhật số tiền, không cho phép cập nhật trạng thái
   async updateChiTietHoaDon(maHD: string, maSV: string, dto: UpdateChiTietHoaDonDTO) {
     const ct = await this.chiTietHoaDonRepository.findOne({ where: { MaHD: maHD, MaSV: maSV } });
     if (!ct) throw new Error('Chi tiết hóa đơn không tồn tại!');
-    const result = this.chiTietHoaDonRepository.merge(ct, dto);
+    // Không cho phép cập nhật trường TrangThai từ phía client
+    const updateData: UpdateChiTietHoaDonDTO = { };
+    if (typeof dto.TongTien === 'number') updateData.TongTien = dto.TongTien;
+    // Bỏ qua mọi giá trị TrangThai gửi lên
+    const result = this.chiTietHoaDonRepository.merge(ct, updateData);
     return await this.chiTietHoaDonRepository.save(result);
   }
 
@@ -103,13 +146,27 @@ export class HoadonService {
 
   // Tìm kiếm hóa đơn
   async searchHoaDon(keyword: string) {
-    return await this.hoadonRepository.find({
+    const list = await this.hoadonRepository.find({
       where: [
         { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
         { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
         { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
       ],
-      relations: ['nhanvien', 'phongs'],
+      relations: ['nhanvien'],
     });
+    return list.map(hd => ({
+      MaHD: hd.MaHD,
+      SoDien: hd.SoDien,
+      GiaDien: hd.GiaDien,
+      SoNuoc: hd.SoNuoc,
+      GiaNuoc: hd.GiaNuoc,
+      GiaPhong: hd.GiaPhong,
+      ChiPhiKhac: hd.ChiPhiKhac,
+      MaPhong: hd.MaPhong,
+      MaNV: hd.MaNV,
+      NgayLap: hd.NgayLap,
+      HanNop: hd.HanNop,
+      nhanvien: hd.nhanvien ? { MaNV: hd.nhanvien.MaNV, TenNV: hd.nhanvien.TenNV } : undefined,
+    }));
   }
 }
