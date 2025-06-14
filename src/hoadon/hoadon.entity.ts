@@ -1,6 +1,7 @@
 import { NhanVien } from 'src/nhanvien/nhanvien.entity';
 import { Phong } from 'src/phong/phong.entity';
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
+import { ChiTietHoaDon } from './chitiethoadon.entity';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryColumn } from 'typeorm';
 
 @Entity('tbl_hoadon')
 export class HoaDon {
@@ -31,6 +32,9 @@ export class HoaDon {
   @Column({ type: 'varchar', length: 20 })
   MaNV: string;
 
+  @Column({ type: 'int', default: 1 })
+  TrangThai: number; // 1: hiển thị, 0: ẩn (xóa mềm)
+
   @ManyToOne(() => NhanVien, (nhanvien) => nhanvien.hoaDons)
   @JoinColumn({ name: 'MaNV' })
   nhanvien: NhanVien;
@@ -38,4 +42,7 @@ export class HoaDon {
   @ManyToOne(() => Phong, (phong) => phong.hoaDons)
   @JoinColumn({ name: 'MaPhong' })
   phongs: Phong;
+
+  @OneToMany(() => ChiTietHoaDon, (ct) => ct.hoadon)
+  chiTiet: ChiTietHoaDon[];
 }

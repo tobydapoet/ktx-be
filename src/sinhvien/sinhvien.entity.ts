@@ -2,6 +2,7 @@ import { Account } from 'src/account/account.entity';
 import { HopDong } from 'src/hopdong/hopdong.entity';
 import { Phong } from 'src/phong/phong.entity';
 import { VanDe } from 'src/vande/vande.entity';
+import { ChiTietHoaDon } from 'src/hoadon/chitiethoadon.entity';
 import {
   Column,
   Entity,
@@ -66,4 +67,7 @@ export class SinhVien {
 
   @OneToMany(() => VanDe, (vande) => vande.sinhvien)
   vanDes: VanDe[];
+
+  @OneToMany(() => ChiTietHoaDon, (ct) => ct.sinhvien)
+  chiTietHoaDon: ChiTietHoaDon[];
 }

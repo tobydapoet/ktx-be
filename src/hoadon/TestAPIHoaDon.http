@@ -1,21 +1,18 @@
-### Lấy tất cả hóa đơn
+### Lấy tất cả hóa đơn (chỉ hóa đơn hiển thị)
 GET http://localhost:3000/hoadon
 
-### Tìm kiếm hóa đơn theo từ khóa
-GET http://localhost:3000/hoadon/search?MaHD=HD001
+### Tìm kiếm hóa đơn theo từ khóa (mã hóa đơn, mã phòng, mã NV)
+GET http://localhost:3000/hoadon/search?keyword=HD001
 
-### Lấy chi tiết hóa đơn theo mã
-GET http://localhost:3000/HoaDon/HD001
+### Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
+GET http://localhost:3000/hoadon/HD01
 
-### Lấy chi tiết hóa đơn theo mã
-GET http://localhost:3000/hoadon/HD002
-
-### Tạo mới hóa đơn
+### Tạo mới hóa đơn và tự động chia tiền cho sinh viên trong phòng
 POST http://localhost:3000/hoadon/create
 Content-Type: application/json
 
 {
-  "MaHD": "HD001",
+  "MaHD": "HD01",
   "SoDien": 100,
   "GiaDien": 3500,
   "SoNuoc": 50,
@@ -23,7 +20,29 @@ Content-Type: application/json
   "GiaPhong": 2000000,
   "ChiPhiKhac": 50000,
   "MaPhong": "P101",
-  "MaNV": "NV001"
+  "MaNV": "NV01"
+}
+
+### Tạo mới hóa đơn và nhập chi tiết thủ công
+POST http://localhost:3000/hoadon/create-with-detail
+Content-Type: application/json
+
+{
+  "hoadon": {
+    "MaHD": "HD02",
+    "SoDien": 80,
+    "GiaDien": 3500,
+    "SoNuoc": 40,
+    "GiaNuoc": 15000,
+    "GiaPhong": 1800000,
+    "ChiPhiKhac": 30000,
+    "MaPhong": "P102",
+    "MaNV": "NV02"
+  },
+  "chiTiet": [
+    { "MaSV": "SV01", "TongTien": 600000 },
+    { "MaSV": "SV02", "TongTien": 600000 }
+  ]
 }
 
 ### Cập nhật hóa đơn
@@ -41,5 +60,14 @@ Content-Type: application/json
   "MaNV": "NV001"
 }
 
-### Xóa hóa đơn
+### Cập nhật chi tiết hóa đơn cho sinh viên
+PUT http://localhost:3000/hoadon/HD001/chitiet/SV01
+Content-Type: application/json
+
+{
+  "TongTien": 650000,
+  "TrangThai": 1
+}
+
+### Xóa mềm hóa đơn (ẩn hóa đơn)
 DELETE http://localhost:3000/hoadon/delete/HD001
