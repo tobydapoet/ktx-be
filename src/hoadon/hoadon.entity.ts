@@ -35,6 +35,12 @@ export class HoaDon {
   @Column({ type: 'int', default: 1 })
   TrangThai: number; // 1: hiển thị, 0: ẩn (xóa mềm)
 
+  @Column({ type: 'date', nullable: true })
+  NgayLap: Date;
+
+  @Column({ type: 'date', nullable: true })
+  HanNop: Date;
+
   @ManyToOne(() => NhanVien, (nhanvien) => nhanvien.hoaDons)
   @JoinColumn({ name: 'MaNV' })
   nhanvien: NhanVien;

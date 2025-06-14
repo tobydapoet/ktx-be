@@ -25,4 +25,12 @@ export class UpdateHoaDonDTO {
 
   @IsString()
   MaNV: string;
+
+  @IsString()
+  @IsOptional()
+  NgayLap?: string;
+
+  @IsString()
+  @IsOptional()
+  HanNop?: string;
 }
