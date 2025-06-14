@@ -30,13 +30,13 @@ export class HoadonController {
 
   @Get(':mahd')
   async getHD(@Param('mahd') maHD: string) {
-    return await this.hoadonService.getHoaDon(maHD);
+    return await this.hoadonService.getHoaDonWithChiTiet(maHD);
   }
 
   @Post('create')
   async create(@Body() dto: CreateHoaDonDTO) {
     try {
-      const res = await this.hoadonService.createHoaDon(dto);
+      const res = await this.hoadonService.createHoaDonAndAutoChiTiet(dto);
       if (res) {
         return {
           success: true,
@@ -86,7 +86,7 @@ export class HoadonController {
   @Delete('delete/:mahd')
   async delete(@Param('mahd') maHD: string) {
     try {
-      const res = await this.hoadonService.deleteHoaDon(maHD);
+      const res = await this.hoadonService.softDeleteHoaDon(maHD);
       if (res) {
         return {
           success: true,
