@@ -207,7 +207,7 @@ export class SinhvienService {
     };
 
     const updatedSV = this.sinhVienRepository.merge(existing, updateData);
-
+    console.log('Updated SinhVien:', updatedSV);
     if (password) {
       if (existing.account) {
         existing.account.Password = password;
