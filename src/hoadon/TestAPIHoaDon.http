@@ -1,8 +1,11 @@
-### Lấy tất cả hóa đơn (chỉ hóa đơn hiển thị)
+### Lấy tất cả hóa đơn (quản lý/nhân viên xem toàn bộ, sinh viên chỉ xem hóa đơn của mình)
 GET http://localhost:3000/hoadon
 
+### Lấy tất cả hóa đơn của một sinh viên (truyền mã sinh viên)
+GET http://localhost:3000/hoadon?maSV=SV002
+
 ### Tìm kiếm hóa đơn theo từ khóa (mã hóa đơn, mã phòng, mã NV)
-GET http://localhost:3000/hoadon/search?keyword=HD001
+GET http://localhost:3000/hoadon/search?keyword=SV01
 
 ### Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
 GET http://localhost:3000/hoadon/HD01
@@ -67,6 +70,16 @@ Content-Type: application/json
 {
   "TongTien": 650000,
   "TrangThai": 1
+}
+
+### Cập nhật số tiền từng sinh viên trong hóa đơn
+POST http://localhost:3000/hoadon/update-sv-tien/HD01
+Content-Type: application/json
+
+{
+  "SV001": 1200000,
+  "SV002": 1500000,
+  "SV003": 1300000
 }
 
 ### Xóa mềm hóa đơn (ẩn hóa đơn)

@@ -107,4 +107,14 @@ export class HoadonController {
       );
     }
   }
+
+  @Post('update-sv-tien/:mahd')
+  async updateSoTienSinhVien(@Param('mahd') maHD: string, @Body() svTien: Record<string, number>) {
+    // svTien: { [MaSV]: TongTien }
+    const promises = Object.entries(svTien).map(async ([maSV, tongTien]) => {
+      return this.hoadonService.updateChiTietHoaDon(maHD, maSV, { TongTien: tongTien });
+    });
+    await Promise.all(promises);
+    return { success: true };
+  }
 }
