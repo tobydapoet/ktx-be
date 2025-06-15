@@ -117,4 +117,10 @@ export class HoadonController {
     await Promise.all(promises);
     return { success: true };
   }
+
+  @Post('thanhtoan-sinhvien/:mahd')
+  async thanhToanSinhVien(@Param('mahd') maHD: string, @Body() body: { MaSV: string }) {
+    await this.hoadonService.updateChiTietHoaDon(maHD, body.MaSV, { TrangThai: 1 });
+    return { success: true };
+  }
 }

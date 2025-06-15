@@ -135,14 +135,14 @@ export class HoadonService {
     return await this.hoadonRepository.save(result);
   }
 
-  // Cập nhật chi tiết hóa đơn, chỉ cho phép cập nhật số tiền, không cho phép cập nhật trạng thái
+  // Cập nhật chi tiết hóa đơn, cho phép cập nhật số tiền và trạng thái
   async updateChiTietHoaDon(maHD: string, maSV: string, dto: UpdateChiTietHoaDonDTO) {
     const ct = await this.chiTietHoaDonRepository.findOne({ where: { MaHD: maHD, MaSV: maSV } });
     if (!ct) throw new Error('Chi tiết hóa đơn không tồn tại!');
-    // Không cho phép cập nhật trường TrangThai từ phía client
+    // Cho phép cập nhật cả số tiền và trạng thái nếu có
     const updateData: UpdateChiTietHoaDonDTO = { };
     if (typeof dto.TongTien === 'number') updateData.TongTien = dto.TongTien;
-    // Bỏ qua mọi giá trị TrangThai gửi lên
+    if (typeof dto.TrangThai === 'number') updateData.TrangThai = dto.TrangThai;
     const result = this.chiTietHoaDonRepository.merge(ct, updateData);
     return await this.chiTietHoaDonRepository.save(result);
   }
