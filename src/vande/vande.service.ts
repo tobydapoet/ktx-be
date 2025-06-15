@@ -24,6 +24,13 @@ export class VandeService {
     });
   }
 
+  async getVanDeByMaSV(maSV: string): Promise<VanDe[]> {
+    return await this.vandeRepository.find({
+      where: { MaSV: maSV },
+      relations: ['sinhvien', 'nhanvien'],
+    });
+  }
+
   async createVanDe(dto: CreateVanDeDTO): Promise<VanDe | null> {
     // Đảm bảo MaNV là string hoặc null
     const data: Partial<VanDe> = { ...dto, MaNV: dto.MaNV ?? null };
@@ -48,27 +55,60 @@ export class VandeService {
     return vande;
   }
 
-  async searchVanDe(keyword: string): Promise<VanDe[]> {
-    const isDate = /^\d{4}-\d{1,2}-\d{1,2}$/.test(keyword);
-    const isMonth = /^\d{4}-\d{1,2}$/.test(keyword);
-    const isYear = /^\d{4}$/.test(keyword);
-    const where: any[] = [
-      { TieuDe: Like(`%${keyword}%`) },
-      { NoiDung: Like(`%${keyword}%`) },
-      { PhanHoi: Like(`%${keyword}%`) },
-      { MaNV: Like(`%${keyword}%`) },
-      { MaSV: Like(`%${keyword}%`) },
-    ];
-    if (isDate) {
-      where.push({ Ngay_tao: keyword });
-    } else if (isMonth) {
-      where.push({ Ngay_tao: Like(`${keyword}%`) });
-    } else if (isYear) {
-      where.push({ Ngay_tao: Like(`${keyword}%`) });
+  async searchVanDe(keyword: string, type: string): Promise<VanDe[]> {
+    if (!keyword || !type) return [];
+
+    if (type === 'Mã vấn đề') {
+      const id = Number(keyword);
+      if (isNaN(id)) return [];
+      return await this.vandeRepository.find({
+        where: { MaVD: id },
+        relations: ['sinhvien', 'nhanvien'],
+      });
+    } else if (type === 'Mã sinh viên') {
+      return await this.vandeRepository.find({
+        where: { MaSV: Like(`%${keyword}%`) },
+        relations: ['sinhvien', 'nhanvien'],
+      });
+    } else if (type === 'Mã nhân viên') {
+      return await this.vandeRepository.find({
+        where: { MaNV: Like(`%${keyword}%`) },
+        relations: ['sinhvien', 'nhanvien'],
+      });
     }
-    return await this.vandeRepository.find({
-      where,
-      relations: ['nhanvien', 'sinhvien'],
-    });
+
+    return [];
+  }
+  async searchVanDeByMaSV(
+    maSV: string,
+    keyword: string,
+    type: string,
+  ): Promise<VanDe[]> {
+    if (!keyword || !type || !maSV) return [];
+
+    const baseWhere = { MaSV: maSV };
+
+    if (type === 'Mã vấn đề') {
+      const id = Number(keyword);
+      if (isNaN(id)) return [];
+      return await this.vandeRepository.find({
+        where: { ...baseWhere, MaVD: id },
+        relations: ['sinhvien', 'nhanvien'],
+      });
+    } else if (type === 'Mã sinh viên') {
+      // Không cho tìm người khác, chỉ chính mình
+      if (!maSV.includes(keyword)) return [];
+      return await this.vandeRepository.find({
+        where: baseWhere,
+        relations: ['sinhvien', 'nhanvien'],
+      });
+    } else if (type === 'Mã nhân viên') {
+      return await this.vandeRepository.find({
+        where: { ...baseWhere, MaNV: Like(`%${keyword}%`) },
+        relations: ['sinhvien', 'nhanvien'],
+      });
+    }
+
+    return [];
   }
 }
