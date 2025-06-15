@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Like } from 'typeorm';
+import { Repository, Like, In } from 'typeorm';
 import { HoaDon } from './hoadon.entity';
 import { ChiTietHoaDon } from './chitiethoadon.entity';
 import { CreateHoaDonDTO } from './dto/create_hoadon.dto';
@@ -20,11 +20,23 @@ export class HoadonService {
   ) {}
 
   // Lấy tất cả hóa đơn (chỉ trạng thái hiển thị)
-  async getAllHoaDon(): Promise<any[]> {
-    const list = await this.hoadonRepository.find({
-      where: { TrangThai: 1 },
-      relations: ['nhanvien'],
-    });
+  async getAllHoaDon(maSV?: string): Promise<any[]> {
+    let list;
+    if (maSV) {
+      // Nếu là sinh viên, chỉ lấy hóa đơn có sinh viên này
+      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV } });
+      const maHDs = chiTietList.map(ct => ct.MaHD);
+      list = await this.hoadonRepository.find({
+        where: { MaHD: In(maHDs), TrangThai: 1 },
+        relations: ['nhanvien'],
+      });
+    } else {
+      // Quản lý, nhân viên: lấy toàn bộ
+      list = await this.hoadonRepository.find({
+        where: { TrangThai: 1 },
+        relations: ['nhanvien'],
+      });
+    }
     return list.map(hd => ({
       MaHD: hd.MaHD,
       SoDien: hd.SoDien,

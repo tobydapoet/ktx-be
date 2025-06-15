@@ -19,8 +19,8 @@ export class HoadonController {
   constructor(private hoadonService: HoadonService) {}
 
   @Get()
-  async getAll() {
-    return await this.hoadonService.getAllHoaDon();
+  async getAll(@Query('maSV') maSV?: string) {
+    return await this.hoadonService.getAllHoaDon(maSV);
   }
 
   @Get('search')
