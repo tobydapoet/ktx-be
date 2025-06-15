@@ -15,6 +15,12 @@ export class AccountService {
     return await this.accountRepository.find();
   }
 
+  async getAccount(username: string): Promise<Account | null> {
+    return await this.accountRepository.findOne({
+      where: { Username: username },
+    });
+  }
+
   async Login(loginDTO: LoginDTO): Promise<Account | null> {
     return await this.accountRepository.findOne({
       where: { Username: loginDTO.Username, Password: loginDTO.Password },

@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   Get,
+  Param,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 
@@ -18,6 +19,11 @@ export class AccountController {
   @Get('')
   async getALl() {
     return await this.accountService.GetAllAccount();
+  }
+
+  @Get(':user')
+  async getSV(@Param('user') username: string) {
+    return await this.accountService.getAccount(username);
   }
 
   @Post('register')

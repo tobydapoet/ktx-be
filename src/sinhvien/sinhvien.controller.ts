@@ -30,6 +30,11 @@ export class SinhvienController {
     return await this.sinhvienService.getSinhVien(maSV);
   }
 
+  @Get('user/:username')
+  async getWithUser(@Param('username') username: string) {
+    return await this.sinhvienService.getWithUserName(username);
+  }
+
   @Get('/phong/:maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     console.log('MaPhong nhận được:', maPhong);

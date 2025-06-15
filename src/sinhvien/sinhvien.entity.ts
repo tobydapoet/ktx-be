@@ -42,13 +42,13 @@ export class SinhVien {
   @Column({ type: 'int' })
   GioiTinh: number;
 
-  @Column({ type: 'blob' })
+  @Column({ type: 'longblob' })
   Image: Buffer;
 
-  @Column({ type: 'blob' })
+  @Column({ type: 'longblob' })
   ImageCCCDFront: Buffer;
 
-  @Column({ type: 'blob' })
+  @Column({ type: 'longblob' })
   ImageCCCDBack: Buffer;
 
   @Column({ type: 'int', default: 0 })

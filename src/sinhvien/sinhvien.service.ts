@@ -32,6 +32,13 @@ export class SinhvienService {
     });
   }
 
+  async getWithUserName(username: string): Promise<SinhVien | null> {
+    return await this.sinhVienRepository.findOne({
+      where: { Username: username },
+      relations: ['phong', 'account'],
+    });
+  }
+
   async existCCCD(cccd: string): Promise<SinhVien | null> {
     return await this.sinhVienRepository.findOne({ where: { CCCD: cccd } });
   }
