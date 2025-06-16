@@ -14,21 +14,25 @@ import { HoadonService } from './hoadon.service';
 import { CreateHoaDonDTO } from './dto/create_hoadon.dto';
 import { UpdateHoaDonDTO } from './dto/update_hoadon.dto';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('hoadon')
 export class HoadonController {
   constructor(private hoadonService: HoadonService) {}
 
+  @Public()
   @Get()
   async getAll(@Query('maSV') maSV?: string) {
     return await this.hoadonService.getAllHoaDon(maSV);
   }
 
+  @Public()
   @Get('search')
   async search(@Query('keyword') keyword: string) {
     return await this.hoadonService.searchHoaDon(keyword);
   }
 
+  @Public()
   @Get(':mahd')
   async getHD(@Param('mahd') maHD: string) {
     return await this.hoadonService.getHoaDonWithChiTiet(maHD);

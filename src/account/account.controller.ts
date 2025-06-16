@@ -16,7 +16,7 @@ import { RegisterDTO } from './dto/register.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Roles } from './roles.decorator';
 import { RolesGuard } from './roles.guard';
-
+import { Public } from './public.decorator';
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
@@ -34,11 +34,13 @@ export class AccountController {
     return this.accountService.GetAllAccount();
   }
 
+  @Public()
   @Get(':user')
   async getSV(@Param('user') username: string) {
     return await this.accountService.getAccount(username);
   }
 
+  @Public()
   @Post('register')
   async register(@Body() registerDTO: RegisterDTO): Promise<any> {
     try {
@@ -58,6 +60,7 @@ export class AccountController {
     }
   }
 
+  @Public()
   @Post('login')
   async login(@Body() loginDTO: LoginDTO): Promise<any> {
     const account = await this.accountService.Login(loginDTO);

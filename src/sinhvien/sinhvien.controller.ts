@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { SinhvienService } from './sinhvien.service';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('sinhvien')
 export class SinhvienController {
@@ -28,19 +29,19 @@ export class SinhvienController {
     return await this.sinhvienService.searchSinhVien(keyword);
   }
 
-  @Roles(0, 2)
+  @Public()
   @Get(':masv')
   async getSV(@Param('masv') maSV: string) {
     return await this.sinhvienService.getSinhVien(maSV);
   }
 
-  @Roles(0, 2)
+  @Public()
   @Get('user/:username')
   async getWithUser(@Param('username') username: string) {
     return await this.sinhvienService.getWithUserName(username);
   }
 
-  @Roles(0, 2)
+  @Public()
   @Get('/phong/:maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     console.log('MaPhong nhận được:', maPhong);

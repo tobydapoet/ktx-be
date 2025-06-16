@@ -13,21 +13,25 @@ import { PhongService } from './phong.service';
 import { UpdatePhongDTO } from './dto/update_phong.dto';
 import { CreatePhongDTO } from './dto/create_phong.dto';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('phong')
 export class PhongController {
   constructor(private readonly phongService: PhongService) {}
 
+  @Public()
   @Get('')
   async getAll() {
     return this.phongService.getAllPhong();
   }
 
+  @Public()
   @Get('search')
   async search(@Query('keyword') keyword: string) {
     return await this.phongService.searchPhong(keyword);
   }
 
+  @Public()
   @Get(':maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     return this.phongService.getPhong(maPhong);

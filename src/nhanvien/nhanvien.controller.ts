@@ -13,6 +13,7 @@ import { NhanvienService } from './nhanvien.service';
 import { CreateNhanVienDTO } from './dto/create_nhanvien.dto';
 import { UpdateNhanVienDTO } from './dto/update_nhanvien.dto';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('nhanvien')
 export class NhanvienController {
@@ -30,13 +31,13 @@ export class NhanvienController {
     return await this.nhanvienService.searchNhanVien(keyword);
   }
 
-  @Roles(2)
+  @Public()
   @Get('user/:username')
   async getWithUser(@Param('username') username: string) {
     return await this.nhanvienService.getWithUserName(username);
   }
 
-  @Roles(2)
+  @Public()
   @Get(':manv')
   async getSV(@Param('manv') maNV: string) {
     return await this.nhanvienService.getNhanVien(maNV);

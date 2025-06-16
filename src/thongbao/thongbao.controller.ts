@@ -14,21 +14,25 @@ import { ThongbaoService } from './thongbao.service';
 import { CreateThongBaoDTO } from './dto/create_thongbao.dto';
 import { UpdateThongBaoDTO } from './dto/update_thongbao.dto';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('thongbao')
 export class ThongbaoController {
   constructor(private thongBaoService: ThongbaoService) {}
 
+  @Public()
   @Get()
   async getAll() {
     return await this.thongBaoService.getAllThongBao();
   }
 
+  @Public()
   @Get('search')
   async search(@Query('keyword') keyword: string, @Query('type') type: string) {
     return await this.thongBaoService.searchThongBao(keyword, type);
   }
 
+  @Public()
   @Get(':matb')
   async getTB(@Param('matb') maTB: number) {
     return await this.thongBaoService.getThongBao(maTB);
