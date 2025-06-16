@@ -4,11 +4,13 @@ import { Repository } from 'typeorm';
 import { Account } from './account.entity';
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AccountService {
   constructor(
     @InjectRepository(Account) private accountRepository: Repository<Account>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async GetAllAccount(): Promise<Account[]> {
@@ -21,10 +23,23 @@ export class AccountService {
     });
   }
 
-  async Login(loginDTO: LoginDTO): Promise<Account | null> {
-    return await this.accountRepository.findOne({
-      where: { Username: loginDTO.Username, Password: loginDTO.Password },
+  async Login(loginDTO: LoginDTO): Promise<{ access_token: string } | null> {
+    const account = await this.accountRepository.findOne({
+      where: {
+        Username: loginDTO.Username,
+        Password: loginDTO.Password,
+      },
     });
+    if (!account) return null;
+    const payload = {
+      Username: account.Username,
+      Password: account.Password,
+      ChucVu: account.ChucVu,
+    };
+    const token = this.jwtService.sign(payload);
+    return {
+      access_token: token,
+    };
   }
 
   async Register(registerDTO: RegisterDTO): Promise<Account> {

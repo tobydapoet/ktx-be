@@ -6,15 +6,24 @@ import {
   HttpStatus,
   Get,
   Param,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  getMe(@Request() req) {
+    return req.user;
+  }
 
   @Get('')
   async getALl() {
@@ -51,7 +60,7 @@ export class AccountController {
     if (account) {
       return {
         success: true,
-        data: account,
+        access_token: account.access_token,
       };
     } else {
       return {
