@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { VandeService } from './vande.service';
 import { CreateVanDeDTO, UpdateVanDeDTO } from './dto/vande.dto';
+import { Roles } from 'src/account/roles.decorator';
 
 @Controller('vande')
 export class VandeController {
@@ -43,12 +44,14 @@ export class VandeController {
   }
 
   // Lấy 1 vấn đề theo mã
+
   @Get(':mavd')
   async getVD(@Param('mavd') maVD: number) {
     return await this.vandeService.getVanDe(maVD);
   }
 
   // Tạo mới
+  @Roles(1)
   @Post('create')
   async create(@Body() dto: CreateVanDeDTO) {
     try {

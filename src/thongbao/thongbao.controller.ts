@@ -13,6 +13,7 @@ import {
 import { ThongbaoService } from './thongbao.service';
 import { CreateThongBaoDTO } from './dto/create_thongbao.dto';
 import { UpdateThongBaoDTO } from './dto/update_thongbao.dto';
+import { Roles } from 'src/account/roles.decorator';
 
 @Controller('thongbao')
 export class ThongbaoController {
@@ -33,6 +34,7 @@ export class ThongbaoController {
     return await this.thongBaoService.getThongBao(maTB);
   }
 
+  @Roles(0, 2)
   @Post('create')
   async create(@Body() dto: CreateThongBaoDTO) {
     try {
@@ -55,6 +57,7 @@ export class ThongbaoController {
     }
   }
 
+  @Roles(0, 2)
   @Put('update/:matb')
   async update(@Param('matb') maTB: number, @Body() dto: UpdateThongBaoDTO) {
     try {
@@ -77,6 +80,7 @@ export class ThongbaoController {
     }
   }
 
+  @Roles(0, 2)
   @Delete('delete/:matb')
   async delete(@Param('matb') maTB: number) {
     try {

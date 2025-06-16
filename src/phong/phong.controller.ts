@@ -12,6 +12,7 @@ import {
 import { PhongService } from './phong.service';
 import { UpdatePhongDTO } from './dto/update_phong.dto';
 import { CreatePhongDTO } from './dto/create_phong.dto';
+import { Roles } from 'src/account/roles.decorator';
 
 @Controller('phong')
 export class PhongController {
@@ -32,6 +33,7 @@ export class PhongController {
     return this.phongService.getPhong(maPhong);
   }
 
+  @Roles(0, 2)
   @Post('create')
   async create(@Body() dto: CreatePhongDTO) {
     try {
@@ -54,6 +56,7 @@ export class PhongController {
     }
   }
 
+  @Roles(0, 2)
   @Put('update/:maphong')
   async update(@Param('maphong') maPhong: string, @Body() dto: UpdatePhongDTO) {
     try {
@@ -76,6 +79,7 @@ export class PhongController {
     }
   }
 
+  @Roles(0, 2)
   @Put('approve/:maphong')
   async approve(@Param('maphong') maPhong: string) {
     try {
@@ -98,6 +102,7 @@ export class PhongController {
     }
   }
 
+  @Roles(0, 2)
   @Put('cancel/:maphong')
   async cancel(@Param('maphong') maPhong: string) {
     try {

@@ -1,11 +1,28 @@
-import { Controller, Get, UseGuards, Request } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 
-@Controller('account')
-export class AccountController {
-  @UseGuards(AuthGuard('jwt'))
-  @Get('user')
-  getProfile(@Request() req) {
-    return req.user;
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<number[]>('roles', [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!requiredRoles || requiredRoles.length === 0) {
+      // Không yêu cầu role nào → cho qua
+      return true;
+    }
+
+    const { user } = context.switchToHttp().getRequest();
+    console.log('User:', user);
+
+    if (!user || user.ChucVu === undefined) {
+      return false;
+    }
+
+    return requiredRoles.includes(user.ChucVu);
   }
 }

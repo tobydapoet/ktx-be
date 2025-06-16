@@ -14,20 +14,24 @@ import { AccountService } from './account.service';
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { Roles } from './roles.decorator';
+import { RolesGuard } from './roles.guard';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('me')
   getMe(@Request() req) {
+    console.log(req.user);
     return req.user;
   }
 
+  @Roles(2)
   @Get('')
-  async getALl() {
-    return await this.accountService.GetAllAccount();
+  getAllAccounts() {
+    return this.accountService.GetAllAccount();
   }
 
   @Get(':user')

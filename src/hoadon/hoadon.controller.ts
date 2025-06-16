@@ -13,6 +13,7 @@ import {
 import { HoadonService } from './hoadon.service';
 import { CreateHoaDonDTO } from './dto/create_hoadon.dto';
 import { UpdateHoaDonDTO } from './dto/update_hoadon.dto';
+import { Roles } from 'src/account/roles.decorator';
 
 @Controller('hoadon')
 export class HoadonController {
@@ -33,6 +34,7 @@ export class HoadonController {
     return await this.hoadonService.getHoaDonWithChiTiet(maHD);
   }
 
+  @Roles(0, 2)
   @Post('create')
   async create(@Body() dto: CreateHoaDonDTO) {
     try {
@@ -58,6 +60,7 @@ export class HoadonController {
     }
   }
 
+  @Roles(0, 2)
   @Put('update/:mahd')
   async update(@Param('mahd') maHD: string, @Body() dto: UpdateHoaDonDTO) {
     try {
@@ -83,6 +86,7 @@ export class HoadonController {
     }
   }
 
+  @Roles(0, 2)
   @Delete('delete/:mahd')
   async delete(@Param('mahd') maHD: string) {
     try {
@@ -108,19 +112,31 @@ export class HoadonController {
     }
   }
 
+  @Roles(0, 2)
   @Post('update-sv-tien/:mahd')
-  async updateSoTienSinhVien(@Param('mahd') maHD: string, @Body() svTien: Record<string, number>) {
+  async updateSoTienSinhVien(
+    @Param('mahd') maHD: string,
+    @Body() svTien: Record<string, number>,
+  ) {
     // svTien: { [MaSV]: TongTien }
     const promises = Object.entries(svTien).map(async ([maSV, tongTien]) => {
-      return this.hoadonService.updateChiTietHoaDon(maHD, maSV, { TongTien: tongTien });
+      return this.hoadonService.updateChiTietHoaDon(maHD, maSV, {
+        TongTien: tongTien,
+      });
     });
     await Promise.all(promises);
     return { success: true };
   }
 
+  @Roles(1)
   @Post('thanhtoan-sinhvien/:mahd')
-  async thanhToanSinhVien(@Param('mahd') maHD: string, @Body() body: { MaSV: string }) {
-    await this.hoadonService.updateChiTietHoaDon(maHD, body.MaSV, { TrangThai: 1 });
+  async thanhToanSinhVien(
+    @Param('mahd') maHD: string,
+    @Body() body: { MaSV: string },
+  ) {
+    await this.hoadonService.updateChiTietHoaDon(maHD, body.MaSV, {
+      TrangThai: 1,
+    });
     return { success: true };
   }
 }
