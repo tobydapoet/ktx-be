@@ -11,17 +11,28 @@ export class VandeService {
     private readonly vandeRepository: Repository<VanDe>,
   ) {}
 
-  async getAllVanDe(): Promise<VanDe[]> {
-    return await this.vandeRepository.find({
+  async getAllVanDe(): Promise<any[]> {
+    const result = await this.vandeRepository.find({
       relations: ['nhanvien', 'sinhvien'],
     });
+    return result.map(vd => ({
+      ...vd,
+      nhanvien: vd.nhanvien ? { MaNV: vd.nhanvien.MaNV, TenNV: vd.nhanvien.TenNV } : null,
+      sinhvien: vd.sinhvien ? { MaSV: vd.sinhvien.MaSV, TenSV: vd.sinhvien.TenSV } : null,
+    }));
   }
 
-  async getVanDe(maVD: number): Promise<VanDe | null> {
-    return await this.vandeRepository.findOne({
+  async getVanDe(maVD: number): Promise<any | null> {
+    const vd = await this.vandeRepository.findOne({
       where: { MaVD: maVD },
       relations: ['nhanvien', 'sinhvien'],
     });
+    if (!vd) return null;
+    return {
+      ...vd,
+      nhanvien: vd.nhanvien ? { MaNV: vd.nhanvien.MaNV, TenNV: vd.nhanvien.TenNV } : null,
+      sinhvien: vd.sinhvien ? { MaSV: vd.sinhvien.MaSV, TenSV: vd.sinhvien.TenSV } : null,
+    };
   }
 
   async createVanDe(dto: CreateVanDeDTO): Promise<VanDe | null> {
@@ -48,7 +59,7 @@ export class VandeService {
     return vande;
   }
 
-  async searchVanDe(keyword: string): Promise<VanDe[]> {
+  async searchVanDe(keyword: string): Promise<any[]> {
     const isDate = /^\d{4}-\d{1,2}-\d{1,2}$/.test(keyword);
     const isMonth = /^\d{4}-\d{1,2}$/.test(keyword);
     const isYear = /^\d{4}$/.test(keyword);
@@ -66,9 +77,14 @@ export class VandeService {
     } else if (isYear) {
       where.push({ Ngay_tao: Like(`${keyword}%`) });
     }
-    return await this.vandeRepository.find({
+    const result = await this.vandeRepository.find({
       where,
       relations: ['nhanvien', 'sinhvien'],
     });
+    return result.map(vd => ({
+      ...vd,
+      nhanvien: vd.nhanvien ? { MaNV: vd.nhanvien.MaNV, TenNV: vd.nhanvien.TenNV } : null,
+      sinhvien: vd.sinhvien ? { MaSV: vd.sinhvien.MaSV, TenSV: vd.sinhvien.TenSV } : null,
+    }));
   }
 }

@@ -3,35 +3,75 @@
 ### Lấy tất cả vấn đề
 GET http://localhost:3000/vande
 
-### Tìm kiếm vấn đề theo từ khóa Tieu đề , nội dung , ma sinh viên , ma nhan vien , phản hồi hoặc ngày tháng năm 
-### ngày tháng năm có định dạng YYYY-MM-DD hoặc YYYY-MM 
-GET http://localhost:3000/vande/search?keyword=2025-06
+# Output mẫu:
+# [
+#   {
+#     "MaVD": 1,
+#     "TieuDe": "string",
+#     "NoiDung": "string",
+#     "PhanHoi": "string",
+#     "MaNV": "string",
+#     "MaSV": "string",
+#     "Ngay_tao": "2025-06-17T10:00:00.000Z",
+#     "nhanvien": { "MaNV": "string", "TenNV": "string" },
+#     "sinhvien": { "MaSV": "string", "TenSV": "string" }
+#   }
+# ]
 
-### Lấy chi tiết vấn đề theo mã , mã vấn đề là một số nguyên tự tăng 
+### Tìm kiếm vấn đề theo từ khóa
+GET http://localhost:3000/vande/search?keyword=localhost:3000/sinhvien/SV002
 
-GET http://localhost:3000/vande/3
+# Output mẫu: như trên
 
-### Tạo mới vấn đề yêu cầu các trường TieuDe, NoiDung, MaSV
-### Thời gian tạo sẽ tự động lấy thời gian hiện tại
+### Lấy chi tiết vấn đề theo mã
+GET http://localhost:3000/vande/1
 
+# Output mẫu:
+# {
+#   "MaVD": 1,
+#   "TieuDe": "string",
+#   "NoiDung": "string",
+#   "PhanHoi": "string",
+#   "MaNV": "string",
+#   "MaSV": "string",
+#   "Ngay_tao": "2025-06-17T10:00:00.000Z",
+#   "nhanvien": { "MaNV": "string", "TenNV": "string" },
+#   "sinhvien": { "MaSV": "string", "TenSV": "string" }
+# }
+
+### Tạo mới vấn đề
 POST http://localhost:3000/vande/create
 Content-Type: application/json
 
 {
-    "TieuDe": "Tiêu đề mẫu",
-    "NoiDung": "Nội dung vấn đề mẫu",
-    "MaSV": "SV01"
+  "TieuDe": "cháy phòng 102",
+  "NoiDung": "xảy ra cháy lớn tại phòng 102, cần xử lý ngay",
+  "MaSV": "SV001",
+  "PhanHoi": "Đã tiếp nhận thông tin"
 }
 
+# Output mẫu:
+# {
+#   "success": true,
+#   "data": { ... }
+# }
+
 ### Cập nhật vấn đề
-PUT http://localhost:3000/vande/update/1
+PUT http://localhost:3000/vande/update/{MaVD}
 Content-Type: application/json
 
 {
-  "TieuDe": "Tiêu đề đã cập nhật",
-  "NoiDung": "Nội dung đã cập nhật",
-  "PhanHoi": "Phản hồi mới"
+  "TieuDe": "string (có thể null)",
+  "NoiDung": "string (có thể null)",
+  "PhanHoi": "string (có thể null)",
+  "MaNV": "string (hoặc null)"
 }
+
+# Output mẫu:
+# { "success": true, "data": { ... } }
 
 ### Xóa vấn đề
 DELETE http://localhost:3000/vande/delete/1
+
+# Output mẫu:
+# { "success": true, "data": { ... } }
