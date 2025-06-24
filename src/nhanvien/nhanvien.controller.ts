@@ -39,7 +39,7 @@ export class NhanvienController {
 
   @Public()
   @Get(':manv')
-  async getSV(@Param('manv') maNV: string) {
+  async getNV(@Param('manv') maNV: string) {
     return await this.nhanvienService.getNhanVien(maNV);
   }
 
