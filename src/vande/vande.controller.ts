@@ -13,12 +13,14 @@ import {
 import { VandeService } from './vande.service';
 import { CreateVanDeDTO, UpdateVanDeDTO } from './dto/vande.dto';
 import { Roles } from 'src/account/roles.decorator';
+import { Public } from 'src/account/public.decorator';
 
 @Controller('vande')
 export class VandeController {
   constructor(private readonly vandeService: VandeService) {}
 
   // Lấy tất cả hoặc theo mã sinh viên
+  @Public()
   @Get('')
   async getAll(@Query('MaSV') maSV: string) {
     if (maSV) {
@@ -28,12 +30,14 @@ export class VandeController {
   }
 
   // Tìm kiếm toàn bộ dữ liệu (Admin hoặc Nhân viên)
+  @Public()
   @Get('search')
   async search(@Query('keyword') keyword: string, @Query('type') type: string) {
     return await this.vandeService.searchVanDe(keyword, type);
   }
 
   // Tìm kiếm giới hạn theo sinh viên
+  @Public()
   @Get('searchsv')
   async searchByMaSV(
     @Query('MaSV') maSV: string,
@@ -44,7 +48,7 @@ export class VandeController {
   }
 
   // Lấy 1 vấn đề theo mã
-
+  @Public()
   @Get(':mavd')
   async getVD(@Param('mavd') maVD: number) {
     return await this.vandeService.getVanDe(maVD);
@@ -66,6 +70,7 @@ export class VandeController {
   }
 
   // Cập nhật
+  @Public()
   @Put('update/:mavd')
   async update(@Param('mavd') maVD: number, @Body() dto: UpdateVanDeDTO) {
     try {
@@ -80,6 +85,7 @@ export class VandeController {
   }
 
   // Xóa
+  @Public()
   @Delete('delete/:mavd')
   async delete(@Param('mavd') maVD: number) {
     try {

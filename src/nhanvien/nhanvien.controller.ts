@@ -19,7 +19,7 @@ import { Public } from 'src/account/public.decorator';
 export class NhanvienController {
   constructor(private nhanvienService: NhanvienService) {}
 
-  @Roles(2)
+  @Public()
   @Get('')
   async getAll() {
     return await this.nhanvienService.getAllNhanVien();
