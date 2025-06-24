@@ -8,7 +8,6 @@ import { ThongbaoModule } from './thongbao/thongbao.module';
 import { PhongModule } from './phong/phong.module';
 import { HoadonModule } from './hoadon/hoadon.module';
 import { HopdongModule } from './hopdong/hopdong.module';
-import { ChatModule } from './chat/chat.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from './account/account.module';
 
@@ -31,7 +30,6 @@ import { AccountModule } from './account/account.module';
     PhongModule,
     HoadonModule,
     HopdongModule,
-    ChatModule,
     AccountModule,
   ],
   controllers: [AppController],

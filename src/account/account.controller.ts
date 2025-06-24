@@ -31,7 +31,7 @@ export class AccountController {
   }
 
   @Get(':user')
-  async getSV(@Param('user') username: string) {
+  async getUser(@Param('user') username: string) {
     return await this.accountService.getAccount(username);
   }
 

@@ -13,15 +13,6 @@ export class Account {
   @Column({ type: 'int' })
   ChucVu: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  DateTime: Date;
-
-  @Column({ type: 'int', default: 0 })
-  online: number;
-
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  log: string;
-
   @OneToOne(() => NhanVien, (nhanvien) => nhanvien.account)
   nhanvien: NhanVien;
 

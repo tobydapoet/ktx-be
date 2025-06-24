@@ -92,9 +92,6 @@ export class SinhvienService {
           Username: dto.Username,
           Password: password,
           ChucVu: 1,
-          DateTime: new Date(),
-          online: 0,
-          log: '',
         });
 
         await queryRunner.manager.save(Account, newAccount);
@@ -217,9 +214,6 @@ export class SinhvienService {
           Username: existing.Username,
           Password: password,
           ChucVu: 1,
-          DateTime: new Date(),
-          online: 0,
-          log: '',
         });
         await this.accountRepository.save(newAccount);
         updatedSV.account = newAccount;

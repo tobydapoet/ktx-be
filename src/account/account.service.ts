@@ -56,9 +56,6 @@ export class AccountService {
       Username: registerDTO.Username,
       Password: registerDTO.Password,
       ChucVu: registerDTO.ChucVu,
-      DateTime: new Date(),
-      online: 0,
-      log: '',
     });
 
     return await this.accountRepository.save(newAccount);
