@@ -10,6 +10,10 @@ import { HoadonModule } from './hoadon/hoadon.module';
 import { HopdongModule } from './hopdong/hopdong.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AccountModule } from './account/account.module';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
+import { RolesGuard } from './account/roles.guard';
+import { JwtAuthGuard } from './account/auth.guard';
 
 @Module({
   imports: [
@@ -33,6 +37,16 @@ import { AccountModule } from './account/account.module';
     AccountModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard,
+    },
+  ],
 })
 export class AppModule {}
