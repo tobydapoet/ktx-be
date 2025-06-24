@@ -24,7 +24,6 @@ export class AccountController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('me')
   getMe(@Request() req) {
-    console.log(req.user);
     return req.user;
   }
 

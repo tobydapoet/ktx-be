@@ -43,7 +43,7 @@ export class NhanvienController {
     return await this.nhanvienService.getNhanVien(maNV);
   }
 
-  @Roles(2)
+  @Public()
   @Post('create')
   async create(@Body() body: any) {
     const { Password, ...dto } = body;
@@ -67,7 +67,7 @@ export class NhanvienController {
     }
   }
 
-  @Roles(2)
+  @Public()
   @Put('update/:manv')
   async update(@Param('manv') maNV: string, @Body() body: any) {
     try {

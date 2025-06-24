@@ -48,7 +48,7 @@ export class SinhvienController {
     return await this.sinhvienService.getApproveSVInPhong(maPhong);
   }
 
-  @Roles(0, 2)
+  @Public()
   @Post('create')
   async create(@Body() body: any) {
     const { Password, ...dto } = body;
@@ -72,7 +72,7 @@ export class SinhvienController {
     }
   }
 
-  @Roles(0, 2)
+  @Public()
   @Put('update/:masv')
   async update(@Param('masv') maSV: string, @Body() body: any) {
     try {
@@ -83,7 +83,6 @@ export class SinhvienController {
         Password,
       );
       if (res) {
-        console.log('Body dto:', dto);
         return {
           success: true,
           data: res,
