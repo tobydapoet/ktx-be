@@ -14,6 +14,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from './account/roles.guard';
 import { JwtAuthGuard } from './account/auth.guard';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { JwtAuthGuard } from './account/auth.guard';
     HoadonModule,
     HopdongModule,
     AccountModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [
