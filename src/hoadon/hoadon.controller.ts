@@ -21,18 +21,18 @@ export class HoadonController {
   constructor(private hoadonService: HoadonService) {}
 
   @Public()
-  @Get()
+  @Roles(0, 1, 2)
   async getAll(@Query('maSV') maSV?: string) {
     return await this.hoadonService.getAllHoaDon(maSV);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('search')
   async search(@Query('keyword') keyword: string) {
     return await this.hoadonService.searchHoaDon(keyword);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':mahd')
   async getHD(@Param('mahd') maHD: string) {
     return await this.hoadonService.getHoaDonWithChiTiet(maHD);

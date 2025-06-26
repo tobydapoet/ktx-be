@@ -97,17 +97,8 @@ export class SinhvienService {
         await queryRunner.manager.save(Account, newAccount);
       }
 
-      function base64ToBuffer(data: string): Buffer | null {
-        if (!data) return null;
-        const base64 = data.includes(',') ? data.split(',')[1] : data;
-        return Buffer.from(base64, 'base64');
-      }
-
       const newSV = queryRunner.manager.create(SinhVien, {
         ...dto,
-        Image: base64ToBuffer(dto.Image),
-        ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
-        ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
         TrangThai: 0,
       } as DeepPartial<SinhVien>);
 
@@ -162,48 +153,18 @@ export class SinhvienService {
       throw new Error('Số điện thoại đã được sử dụng!');
     }
     if (dto.MaPhong && dto.MaPhong !== existing.MaPhong) {
-      if (existing.TrangThai === 0) {
-        dto.MaPhong = existing.MaPhong;
-      } else {
-        const newPhong = await this.phongRepository.findOne({
-          where: { MaPhong: dto.MaPhong },
-        });
-        if (!newPhong) throw new Error('Phòng mới không tồn tại!');
-        if (newPhong.LoaiPhong !== existing.GioiTinh) {
-          throw new Error(
-            'Loại phòng không phù hợp với giới tính của sinh viên!',
-          );
-        }
+      const newPhong = await this.phongRepository.findOne({
+        where: { MaPhong: dto.MaPhong },
+      });
+      if (!newPhong) throw new Error('Phòng mới không tồn tại!');
+      if (newPhong.LoaiPhong !== existing.GioiTinh) {
+        throw new Error(
+          'Loại phòng không phù hợp với giới tính của sinh viên!',
+        );
       }
     }
 
-    function base64ToBuffer(data?: string): Buffer | undefined {
-      if (!data) return undefined;
-      const base64 = data.includes(',') ? data.split(',')[1] : data;
-      return Buffer.from(base64, 'base64');
-    }
-
-    if (dto.Image) {
-      const buffer = base64ToBuffer(dto.Image);
-      if (buffer) existing.Image = buffer;
-    }
-    if (dto.ImageCCCDFront) {
-      const buffer = base64ToBuffer(dto.ImageCCCDFront);
-      if (buffer) existing.ImageCCCDFront = buffer;
-    }
-    if (dto.ImageCCCDBack) {
-      const buffer = base64ToBuffer(dto.ImageCCCDBack);
-      if (buffer) existing.ImageCCCDBack = buffer;
-    }
-
-    const updateData: DeepPartial<SinhVien> = {
-      ...dto,
-      Image: base64ToBuffer(dto.Image),
-      ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
-      ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
-    };
-
-    const updatedSV = this.sinhVienRepository.merge(existing, updateData);
+    const updatedSV = this.sinhVienRepository.merge(existing, dto);
 
     if (password) {
       if (existing.account) {

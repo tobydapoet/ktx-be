@@ -19,19 +19,19 @@ import { Public } from 'src/account/public.decorator';
 export class PhongController {
   constructor(private readonly phongService: PhongService) {}
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('')
   async getAll() {
     return this.phongService.getAllPhong();
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('search')
   async search(@Query('keyword') keyword: string) {
     return await this.phongService.searchPhong(keyword);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     return this.phongService.getPhong(maPhong);

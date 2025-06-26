@@ -20,7 +20,7 @@ export class VandeController {
   constructor(private readonly vandeService: VandeService) {}
 
   // Lấy tất cả hoặc theo mã sinh viên
-  @Public()
+  @Roles(0, 2)
   @Get('')
   async getAll(@Query('MaSV') maSV: string) {
     if (maSV) {
@@ -30,14 +30,14 @@ export class VandeController {
   }
 
   // Tìm kiếm toàn bộ dữ liệu (Admin hoặc Nhân viên)
-  @Public()
+  @Roles(0, 2)
   @Get('search')
   async search(@Query('keyword') keyword: string, @Query('type') type: string) {
     return await this.vandeService.searchVanDe(keyword, type);
   }
 
   // Tìm kiếm giới hạn theo sinh viên
-  @Public()
+  @Roles(0, 1, 2)
   @Get('searchsv')
   async searchByMaSV(
     @Query('MaSV') maSV: string,
@@ -48,7 +48,7 @@ export class VandeController {
   }
 
   // Lấy 1 vấn đề theo mã
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':mavd')
   async getVD(@Param('mavd') maVD: number) {
     return await this.vandeService.getVanDe(maVD);
@@ -70,7 +70,7 @@ export class VandeController {
   }
 
   // Cập nhật
-  @Public()
+  @Roles(0, 1, 2)
   @Put('update/:mavd')
   async update(@Param('mavd') maVD: number, @Body() dto: UpdateVanDeDTO) {
     try {
@@ -85,7 +85,7 @@ export class VandeController {
   }
 
   // Xóa
-  @Public()
+  @Roles(0, 1, 2)
   @Delete('delete/:mavd')
   async delete(@Param('mavd') maVD: number) {
     try {

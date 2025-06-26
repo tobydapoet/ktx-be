@@ -55,14 +55,14 @@ export class AuthService {
     auth.twoFaSecret = secret.base32;
     await this.authRepo.save(auth);
 
-    // const otp = speakeasy.totp({
-    //   secret: secret.base32,
-    //   encoding: 'base32',
-    // });
+    const otp = speakeasy.totp({
+      secret: secret.base32,
+      encoding: 'base32',
+    });
 
     return {
       secret: secret.base32,
-      //   otp,
+      otp,
     };
   }
 

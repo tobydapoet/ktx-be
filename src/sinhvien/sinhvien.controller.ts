@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { SinhvienService } from './sinhvien.service';
 import { Roles } from 'src/account/roles.decorator';
-import { Public } from 'src/account/public.decorator';
 
 @Controller('sinhvien')
 export class SinhvienController {
@@ -29,31 +28,33 @@ export class SinhvienController {
     return await this.sinhvienService.searchSinhVien(keyword);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':masv')
   async getSV(@Param('masv') maSV: string) {
     return await this.sinhvienService.getSinhVien(maSV);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('user/:username')
   async getWithUser(@Param('username') username: string) {
     return await this.sinhvienService.getWithUserName(username);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('/phong/:maphong')
   async getPhong(@Param('maphong') maPhong: string) {
     console.log('MaPhong nhận được:', maPhong);
     return await this.sinhvienService.getApproveSVInPhong(maPhong);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Post('create')
   async create(@Body() body: any) {
     const { Password, ...dto } = body;
     try {
       const res = await this.sinhvienService.createSinhVien(dto, Password);
+      console.log(res);
+
       if (res) {
         return {
           success: true,
@@ -72,7 +73,7 @@ export class SinhvienController {
     }
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Put('update/:masv')
   async update(@Param('masv') maSV: string, @Body() body: any) {
     try {
@@ -83,6 +84,8 @@ export class SinhvienController {
         Password,
       );
       if (res) {
+        console.log(res);
+
         return {
           success: true,
           data: res,

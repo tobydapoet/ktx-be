@@ -42,14 +42,14 @@ export class SinhVien {
   @Column({ type: 'int' })
   GioiTinh: number;
 
-  @Column({ type: 'longblob' })
-  Image: Buffer;
+  @Column({ type: 'varchar', length: 255 })
+  Image: String;
 
-  @Column({ type: 'longblob' })
-  ImageCCCDFront: Buffer;
+  @Column({ type: 'varchar', length: 255 })
+  ImageCCCDFront: String;
 
-  @Column({ type: 'longblob' })
-  ImageCCCDBack: Buffer;
+  @Column({ type: 'varchar', length: 255 })
+  ImageCCCDBack: String;
 
   @Column({ type: 'int', default: 0 })
   TrangThai: number;

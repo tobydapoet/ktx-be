@@ -26,13 +26,13 @@ export class ThongbaoController {
     return await this.thongBaoService.getAllThongBao();
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('search')
   async search(@Query('keyword') keyword: string, @Query('type') type: string) {
     return await this.thongBaoService.searchThongBao(keyword, type);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':matb')
   async getTB(@Param('matb') maTB: number) {
     return await this.thongBaoService.getThongBao(maTB);

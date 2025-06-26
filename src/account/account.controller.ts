@@ -21,6 +21,7 @@ import { Public } from './public.decorator';
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
+  @Roles(0, 1, 2)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('me')
   getMe(@Request() req) {
@@ -33,7 +34,7 @@ export class AccountController {
     return this.accountService.GetAllAccount();
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':user')
   async getUser(@Param('user') username: string) {
     return await this.accountService.getAccount(username);

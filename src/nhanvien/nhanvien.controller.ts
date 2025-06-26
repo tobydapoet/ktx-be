@@ -10,8 +10,6 @@ import {
   Query,
 } from '@nestjs/common';
 import { NhanvienService } from './nhanvien.service';
-import { CreateNhanVienDTO } from './dto/create_nhanvien.dto';
-import { UpdateNhanVienDTO } from './dto/update_nhanvien.dto';
 import { Roles } from 'src/account/roles.decorator';
 import { Public } from 'src/account/public.decorator';
 
@@ -19,7 +17,7 @@ import { Public } from 'src/account/public.decorator';
 export class NhanvienController {
   constructor(private nhanvienService: NhanvienService) {}
 
-  @Public()
+  @Roles(2)
   @Get('')
   async getAll() {
     return await this.nhanvienService.getAllNhanVien();
@@ -31,25 +29,27 @@ export class NhanvienController {
     return await this.nhanvienService.searchNhanVien(keyword);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get('user/:username')
   async getWithUser(@Param('username') username: string) {
     return await this.nhanvienService.getWithUserName(username);
   }
 
-  @Public()
+  @Roles(0, 1, 2)
   @Get(':manv')
   async getNV(@Param('manv') maNV: string) {
     return await this.nhanvienService.getNhanVien(maNV);
   }
 
-  @Public()
+  @Roles(0, 2)
   @Post('create')
   async create(@Body() body: any) {
     const { Password, ...dto } = body;
     try {
       const res = await this.nhanvienService.createNhanvien(dto, Password);
       if (res) {
+        console.log(res);
+
         return {
           success: true,
           data: res,
@@ -67,7 +67,7 @@ export class NhanvienController {
     }
   }
 
-  @Public()
+  @Roles(0, 2)
   @Put('update/:manv')
   async update(@Param('manv') maNV: string, @Body() body: any) {
     try {
@@ -77,6 +77,8 @@ export class NhanvienController {
         dto,
         Password,
       );
+      console.log(res);
+
       if (res) {
         return {
           success: true,

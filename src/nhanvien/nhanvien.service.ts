@@ -65,8 +65,6 @@ export class NhanvienService {
         throw new Error('Số điện thoại đã được sử dụng!');
       }
 
-      let newAccount;
-
       if (password) {
         const existingAccount = await queryRunner.manager.findOne(Account, {
           where: { Username: dto.Username },
@@ -75,44 +73,42 @@ export class NhanvienService {
           throw new Error('Username đã tồn tại!');
         }
 
-        newAccount = queryRunner.manager.create(Account, {
+        const newAccount = queryRunner.manager.create(Account, {
           Username: dto.Username,
           Password: password,
           ChucVu: 1,
         });
-        newAccount = await queryRunner.manager.save(Account, newAccount);
-      } else {
-        newAccount = null;
-      }
-
-      // const newNV = queryRunner.manager.create(NhanVien, {
-      //   ...dto,
-      //   Username: dto.Username,
-      //   TrangThai: 0,
-      // });
-
-      function base64ToBuffer(data: string): Buffer | null {
-        if (!data) return null;
-        const base64 = data.includes(',') ? data.split(',')[1] : data;
-        return Buffer.from(base64, 'base64');
+        await queryRunner.manager.save(Account, newAccount);
       }
 
       const newNV = queryRunner.manager.create(NhanVien, {
         ...dto,
-        Image: base64ToBuffer(dto.Image),
-        ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
-        ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
-        account: newAccount,
-
+        Username: dto.Username,
         TrangThai: 0,
-      } as DeepPartial<NhanVien>);
+      });
 
-      const savedSV = await queryRunner.manager.save(NhanVien, newNV);
+      // function base64ToBuffer(data: string): Buffer | null {
+      //   if (!data) return null;
+      //   const base64 = data.includes(',') ? data.split(',')[1] : data;
+      //   return Buffer.from(base64, 'base64');
+      // }
+
+      // const newNV = queryRunner.manager.create(NhanVien, {
+      //   ...dto,
+      //   Image: base64ToBuffer(dto.Image),
+      //   ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
+      //   ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
+      //   account: newAccount,
+
+      //   TrangThai: 0,
+      // } as DeepPartial<NhanVien>);
+
+      const savedNV = await queryRunner.manager.save(NhanVien, newNV);
 
       await queryRunner.commitTransaction();
 
       const fullNhanVien = await queryRunner.manager.findOne(NhanVien, {
-        where: { MaNV: savedSV.MaNV },
+        where: { MaNV: savedNV.MaNV },
         relations: ['account'],
       });
       return fullNhanVien;
@@ -149,34 +145,7 @@ export class NhanvienService {
     ) {
       throw new Error('Số điện thoại đã được sử dụng!');
     }
-
-    function base64ToBuffer(data?: string): Buffer | undefined {
-      if (!data) return undefined;
-      const base64 = data.includes(',') ? data.split(',')[1] : data;
-      return Buffer.from(base64, 'base64');
-    }
-
-    if (dto.Image) {
-      const buffer = base64ToBuffer(dto.Image);
-      if (buffer) existing.Image = buffer;
-    }
-    if (dto.ImageCCCDFront) {
-      const buffer = base64ToBuffer(dto.ImageCCCDFront);
-      if (buffer) existing.ImageCCCDFront = buffer;
-    }
-    if (dto.ImageCCCDBack) {
-      const buffer = base64ToBuffer(dto.ImageCCCDBack);
-      if (buffer) existing.ImageCCCDBack = buffer;
-    }
-
-    const updateData: DeepPartial<NhanVien> = {
-      ...dto,
-      Image: base64ToBuffer(dto.Image),
-      ImageCCCDFront: base64ToBuffer(dto.ImageCCCDFront),
-      ImageCCCDBack: base64ToBuffer(dto.ImageCCCDBack),
-    };
-
-    const updatedSV = this.nhanvienRepository.merge(existing, updateData);
+    const updatedSV = this.nhanvienRepository.merge(existing, dto);
 
     if (password) {
       if (existing.account) {
