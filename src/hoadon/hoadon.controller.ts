@@ -20,7 +20,8 @@ import { Public } from 'src/account/public.decorator';
 export class HoadonController {
   constructor(private hoadonService: HoadonService) {}
 
-  @Public()
+
+  @Get()
   @Roles(0, 1, 2)
   async getAll(@Query('maSV') maSV?: string) {
     return await this.hoadonService.getAllHoaDon(maSV);

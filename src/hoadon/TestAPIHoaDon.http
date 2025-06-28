@@ -15,7 +15,6 @@ POST http://localhost:3000/hoadon/create
 Content-Type: application/json
 
 {
-  "MaHD": "HD01",
   "SoDien": 100,
   "GiaDien": 3500,
   "SoNuoc": 50,
@@ -26,13 +25,19 @@ Content-Type: application/json
   "MaNV": "NV01"
 }
 
+### Trường hợp phòng đã có hóa đơn tháng này (ví dụ lỗi trả về)
+# Response:
+# {
+#   "success": false,
+#   "error": "Phòng này đã có hóa đơn trong tháng này!"
+# }
+
 ### Tạo mới hóa đơn và nhập chi tiết thủ công
 POST http://localhost:3000/hoadon/create-with-detail
 Content-Type: application/json
 
 {
   "hoadon": {
-    "MaHD": "HD02",
     "SoDien": 80,
     "GiaDien": 3500,
     "SoNuoc": 40,

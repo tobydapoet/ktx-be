@@ -1,9 +1,6 @@
 import { IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateHoaDonDTO {
-  @IsString()
-  MaHD: string;
-
   @IsInt()
   SoDien: number;
 
