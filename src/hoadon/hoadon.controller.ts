@@ -16,10 +16,12 @@ import { UpdateHoaDonDTO } from './dto/update_hoadon.dto';
 import { Roles } from 'src/account/roles.decorator';
 import { Public } from 'src/account/public.decorator';
 
+
 @Controller('hoadon')
 export class HoadonController {
-  constructor(private hoadonService: HoadonService) {}
-
+  constructor(
+    private hoadonService: HoadonService,
+  ) {}
 
   @Get('')
   @Roles(0, 1, 2)
@@ -65,10 +67,24 @@ export class HoadonController {
     }
   }
 
-  @Roles(0, 2)
+  @Roles(0, 2, 1)
   @Put('update/:mahd')
   async update(@Param('mahd') maHD: string, @Body() dto: UpdateHoaDonDTO) {
     try {
+      console.log('=== DEBUG UPDATE HOADON ===');
+      console.log('MaHD:', maHD);
+      console.log('DTO received:', dto);
+      console.log('DTO type check:', {
+        SoDien: typeof dto.SoDien,
+        GiaDien: typeof dto.GiaDien,
+        SoNuoc: typeof dto.SoNuoc,
+        GiaNuoc: typeof dto.GiaNuoc,
+        GiaPhong: typeof dto.GiaPhong,
+        MaPhong: typeof dto.MaPhong,
+        MaNV: typeof dto.MaNV,
+        NgayLap: typeof dto.NgayLap,
+      });
+      
       const res = await this.hoadonService.updateHoaDon(maHD, dto);
       if (res) {
         return {
@@ -77,6 +93,8 @@ export class HoadonController {
         };
       }
     } catch (err) {
+      console.log('=== ERROR IN UPDATE ===');
+      console.log('Error:', err);
       let errorMsg = 'Có lỗi xảy ra';
       if (err && typeof err === 'object' && err !== null && 'message' in err) {
         errorMsg = String((err as { message?: unknown }).message);

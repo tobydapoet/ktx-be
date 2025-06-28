@@ -155,9 +155,31 @@ export class HoadonService {
   async updateHoaDon(maHD: string, dto: Partial<UpdateHoaDonDTO>) {
     const existing = await this.hoadonRepository.findOne({ where: { MaHD: maHD } });
     if (!existing) throw new Error('Hóa đơn không tồn tại!');
+
+    // Frontend không gửi NgayLap, nên luôn giữ nguyên ngày lập cũ
+    const newNgayLap: Date = existing.NgayLap || new Date();
+    const newMaPhong = dto.MaPhong || existing.MaPhong;
+    
+    // Chỉ kiểm tra trùng nếu đổi phòng (vì NgayLap không thay đổi)
+    if (newMaPhong !== existing.MaPhong) {
+      const month = newNgayLap.getMonth() + 1;
+      const year = newNgayLap.getFullYear();
+      
+      const existed = await this.hoadonRepository.createQueryBuilder('hd')
+        .where('hd.MaPhong = :maPhong', { maPhong: newMaPhong })
+        .andWhere('MONTH(hd.NgayLap) = :month', { month })
+        .andWhere('YEAR(hd.NgayLap) = :year', { year })
+        .andWhere('hd.TrangThai = 1')
+        .andWhere('hd.MaHD != :maHD', { maHD }) // Loại trừ hóa đơn hiện tại
+        .getOne();
+      if (existed) {
+        throw new Error('Phòng này đã có hóa đơn trong tháng này!');
+      }
+    }
+    
     const result = this.hoadonRepository.merge(existing, {
       ...dto,
-      NgayLap: dto.NgayLap ? new Date(dto.NgayLap) : existing.NgayLap,
+      NgayLap: newNgayLap, // Luôn giữ nguyên ngày lập cũ
       HanNop: dto.HanNop ? new Date(dto.HanNop) : existing.HanNop,
     });
     return await this.hoadonRepository.save(result);

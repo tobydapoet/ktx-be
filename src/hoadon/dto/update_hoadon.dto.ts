@@ -1,30 +1,44 @@
-import { IsInt, IsOptional, IsString } from 'class-validator';
+import { IsInt, IsOptional, IsString, IsNumber } from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class UpdateHoaDonDTO {
-  @IsInt()
-  SoDien: number;
-
-  @IsInt()
-  GiaDien: number;
-
-  @IsInt()
-  SoNuoc: number;
-
-  @IsInt()
-  GiaNuoc: number;
-
-  @IsInt()
-  GiaPhong: number;
-
-  @IsInt()
   @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  SoDien?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  GiaDien?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  SoNuoc?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  GiaNuoc?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  GiaPhong?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
   ChiPhiKhac?: number;
 
   @IsString()
-  MaPhong: string;
+  @IsOptional()
+  MaPhong?: string;
 
   @IsString()
-  MaNV: string;
+  @IsOptional()
+  MaNV?: string;
 
   @IsString()
   @IsOptional()
