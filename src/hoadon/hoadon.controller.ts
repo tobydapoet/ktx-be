@@ -21,7 +21,7 @@ export class HoadonController {
   constructor(private hoadonService: HoadonService) {}
 
 
-  @Get()
+  @Get('')
   @Roles(0, 1, 2)
   async getAll(@Query('maSV') maSV?: string) {
     return await this.hoadonService.getAllHoaDon(maSV);
