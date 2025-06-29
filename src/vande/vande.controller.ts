@@ -20,7 +20,7 @@ export class VandeController {
   constructor(private readonly vandeService: VandeService) {}
 
   // Lấy tất cả hoặc theo mã sinh viên
-  @Roles(0, 2)
+  @Roles(0, 1, 2)
   @Get('')
   async getAll(@Query('MaSV') maSV: string) {
     if (maSV) {
