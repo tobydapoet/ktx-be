@@ -207,15 +207,38 @@ export class HoadonService {
   }
 
   // Tìm kiếm hóa đơn
-  async searchHoaDon(keyword: string) {
-    const list = await this.hoadonRepository.find({
-      where: [
-        { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
-        { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
-        { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
-      ],
-      relations: ['nhanvien'],
-    });
+  async searchHoaDon(keyword: string, maSV?: string) {
+    let list;
+    
+    if (maSV) {
+      // Nếu là sinh viên, tìm kiếm trong các hóa đơn của sinh viên đó
+      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV } });
+      const maHDs = chiTietList.map(ct => ct.MaHD);
+      
+      if (maHDs.length === 0) {
+        return [];
+      }
+      
+      list = await this.hoadonRepository
+        .createQueryBuilder('hoadon')
+        .leftJoinAndSelect('hoadon.nhanvien', 'nhanvien')
+        .where('hoadon.TrangThai = :trangThai', { trangThai: 1 })
+        .andWhere('hoadon.MaHD IN (:...maHDs)', { maHDs })
+        .andWhere('(hoadon.MaHD LIKE :keyword OR hoadon.MaPhong LIKE :keyword OR hoadon.MaNV LIKE :keyword)', 
+                  { keyword: `%${keyword}%` })
+        .getMany();
+    } else {
+      // Quản lý, nhân viên: tìm kiếm toàn bộ
+      list = await this.hoadonRepository.find({
+        where: [
+          { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
+          { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
+          { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
+        ],
+        relations: ['nhanvien'],
+      });
+    }
+
     return list.map(hd => ({
       MaHD: hd.MaHD,
       SoDien: hd.SoDien,

@@ -31,8 +31,8 @@ export class HoadonController {
 
   @Roles(0, 1, 2)
   @Get('search')
-  async search(@Query('keyword') keyword: string) {
-    return await this.hoadonService.searchHoaDon(keyword);
+  async search(@Query('keyword') keyword: string, @Query('maSV') maSV?: string) {
+    return await this.hoadonService.searchHoaDon(keyword, maSV);
   }
 
   @Roles(0, 1, 2)
