@@ -85,8 +85,36 @@ export class HoadonService {
 
   // Tạo mới hóa đơn và tự động tạo chi tiết cho từng sinh viên trong phòng
   async createHoaDonAndAutoChiTiet(dto: CreateHoaDonDTO) {
+    // Kiểm tra đã có hóa đơn của phòng này trong tháng này chưa
+    const now = dto.NgayLap ? new Date(dto.NgayLap) : new Date();
+    const month = now.getMonth() + 1;
+    const year = now.getFullYear();
+    const existed = await this.hoadonRepository.createQueryBuilder('hd')
+      .where('hd.MaPhong = :maPhong', { maPhong: dto.MaPhong })
+      .andWhere('MONTH(hd.NgayLap) = :month', { month })
+      .andWhere('YEAR(hd.NgayLap) = :year', { year })
+      .andWhere('hd.TrangThai = 1')
+      .getOne();
+    if (existed) {
+      throw new Error('Phòng này đã có hóa đơn trong tháng này!');
+    }
+    // Lấy mã hóa đơn lớn nhất hiện có
+    const lastHD = await this.hoadonRepository.find({
+      order: { MaHD: 'DESC' },
+      take: 1,
+      select: ['MaHD'],
+    });
+    let newNumber = 1;
+    if (lastHD.length > 0 && lastHD[0].MaHD) {
+      const match = lastHD[0].MaHD.match(/HD(\d+)/);
+      if (match) {
+        newNumber = parseInt(match[1], 10) + 1;
+      }
+    }
+    const newMaHD = `HD${newNumber.toString().padStart(2, '0')}`;
     const hoaDonEntity = this.hoadonRepository.create({
       ...dto,
+      MaHD: newMaHD,
       NgayLap: dto.NgayLap ? new Date(dto.NgayLap) : new Date(),
       HanNop: dto.HanNop ? new Date(dto.HanNop) : undefined,
     });
@@ -127,9 +155,31 @@ export class HoadonService {
   async updateHoaDon(maHD: string, dto: Partial<UpdateHoaDonDTO>) {
     const existing = await this.hoadonRepository.findOne({ where: { MaHD: maHD } });
     if (!existing) throw new Error('Hóa đơn không tồn tại!');
+
+    // Frontend không gửi NgayLap, nên luôn giữ nguyên ngày lập cũ
+    const newNgayLap: Date = existing.NgayLap || new Date();
+    const newMaPhong = dto.MaPhong || existing.MaPhong;
+    
+    // Chỉ kiểm tra trùng nếu đổi phòng (vì NgayLap không thay đổi)
+    if (newMaPhong !== existing.MaPhong) {
+      const month = newNgayLap.getMonth() + 1;
+      const year = newNgayLap.getFullYear();
+      
+      const existed = await this.hoadonRepository.createQueryBuilder('hd')
+        .where('hd.MaPhong = :maPhong', { maPhong: newMaPhong })
+        .andWhere('MONTH(hd.NgayLap) = :month', { month })
+        .andWhere('YEAR(hd.NgayLap) = :year', { year })
+        .andWhere('hd.TrangThai = 1')
+        .andWhere('hd.MaHD != :maHD', { maHD }) // Loại trừ hóa đơn hiện tại
+        .getOne();
+      if (existed) {
+        throw new Error('Phòng này đã có hóa đơn trong tháng này!');
+      }
+    }
+    
     const result = this.hoadonRepository.merge(existing, {
       ...dto,
-      NgayLap: dto.NgayLap ? new Date(dto.NgayLap) : existing.NgayLap,
+      NgayLap: newNgayLap, // Luôn giữ nguyên ngày lập cũ
       HanNop: dto.HanNop ? new Date(dto.HanNop) : existing.HanNop,
     });
     return await this.hoadonRepository.save(result);
@@ -157,15 +207,38 @@ export class HoadonService {
   }
 
   // Tìm kiếm hóa đơn
-  async searchHoaDon(keyword: string) {
-    const list = await this.hoadonRepository.find({
-      where: [
-        { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
-        { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
-        { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
-      ],
-      relations: ['nhanvien'],
-    });
+  async searchHoaDon(keyword: string, maSV?: string) {
+    let list;
+    
+    if (maSV) {
+      // Nếu là sinh viên, tìm kiếm trong các hóa đơn của sinh viên đó
+      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV } });
+      const maHDs = chiTietList.map(ct => ct.MaHD);
+      
+      if (maHDs.length === 0) {
+        return [];
+      }
+      
+      list = await this.hoadonRepository
+        .createQueryBuilder('hoadon')
+        .leftJoinAndSelect('hoadon.nhanvien', 'nhanvien')
+        .where('hoadon.TrangThai = :trangThai', { trangThai: 1 })
+        .andWhere('hoadon.MaHD IN (:...maHDs)', { maHDs })
+        .andWhere('(hoadon.MaHD LIKE :keyword OR hoadon.MaPhong LIKE :keyword OR hoadon.MaNV LIKE :keyword)', 
+                  { keyword: `%${keyword}%` })
+        .getMany();
+    } else {
+      // Quản lý, nhân viên: tìm kiếm toàn bộ
+      list = await this.hoadonRepository.find({
+        where: [
+          { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
+          { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
+          { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
+        ],
+        relations: ['nhanvien'],
+      });
+    }
+
     return list.map(hd => ({
       MaHD: hd.MaHD,
       SoDien: hd.SoDien,
