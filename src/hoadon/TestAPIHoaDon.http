@@ -1,18 +1,49 @@
 
 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6ImFkbWluIiwiUGFzc3dvcmQiOiJhZG1pbiIsIkNodWNWdSI6MiwiaWF0IjoxNzUxNDc4MDk1LCJleHAiOjE3NTE0Nzg5OTV9.srLu7lQrXfwE-3gI7WAs0S9FC0vqRbdpqjwmoaNfSuI
+# ==============================================
+# BIẾN TOKEN CHO CÁC ROLE KHÁC NHAU
+# ==============================================
+@admin_token = your_admin_jwt_token_here
+@nhanvien_token = your_nhanvien_jwt_token_here
+@sinhvien_token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6InRodXl0aWVuIiwiUGFzc3dvcmQiOiJ0aHV5dGllbiIsIkNodWNWdSI6MSwiaWF0IjoxNzUxNDg1NTI3LCJleHAiOjE3NTE0ODY0Mjd9.XLwWkctPFppWBnSYS_EMaOty4kaMgD4Ll8KWMep_Z18
 
-### Lấy danh sách hóa đơn (filter, phân trang, tìm kiếm, quyền)
+# ==============================================
+# API CHO ADMIN (ChucVu = 0) - ĐẦY ĐỦ QUYỀN
+# ==============================================
+
+### [ADMIN] Lấy tất cả hóa đơn trong hệ thống
 GET http://localhost:3000/hoadon
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
 
-### Lấy chi tiết hóa đơn theo mã (bao gồm chi tiết từng sinh viên)
-GET http://localhost:3000/hoadon/HD001
-Authorization: Bearer {{token}}
+### [ADMIN] Lấy hóa đơn với phân trang
+GET http://localhost:3000/hoadon?page=1&pageSize=10
+Authorization: Bearer {{admin_token}}
 
-### Tạo mới hóa đơn (tự động chia tiền cho sinh viên trong phòng)
+### [ADMIN] Tìm kiếm hóa đơn theo từ khóa (tên sinh viên, mã hóa đơn)
+GET http://localhost:3000/hoadon?keyword=nguyen
+Authorization: Bearer {{admin_token}}
+
+### [ADMIN] Filter hóa đơn theo phòng
+GET http://localhost:3000/hoadon?maPhong=P101
+Authorization: Bearer {{admin_token}}
+
+### [ADMIN] Tìm kiếm nâng cao
+GET http://localhost:3000/hoadon/search?keyword=thu&maPhong=P101&page=1&pageSize=5
+Authorization: Bearer {{admin_token}}
+
+# ==============================================
+# ⚠️ LOGIC MỚI: USERNAME → MaSV CONVERSION
+# ==============================================
+# Backend sẽ tự động:
+# 1. Lấy user.Username từ JWT token (ví dụ: "thuytien")
+# 2. Query bảng sinhvien: WHERE Username = "thuytien" 
+# 3. Lấy MaSV thực tế (ví dụ: "SV002")
+# 4. Filter hóa đơn: WHERE ct.MaSV = "SV002"
+# ==============================================
+
+### [ADMIN] Tạo mới hóa đơn (tự động chia tiền cho sinh viên trong phòng)
 POST http://localhost:3000/hoadon
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
@@ -26,9 +57,9 @@ Content-Type: application/json
   "MaNV": "NV01"
 }
 
-### Tạo mới hóa đơn và nhập chi tiết thủ công
+### [ADMIN] Tạo mới hóa đơn và nhập chi tiết thủ công
 POST http://localhost:3000/hoadon/with-detail
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
@@ -48,9 +79,9 @@ Content-Type: application/json
   ]
 }
 
-### Cập nhật hóa đơn
+### [ADMIN] Cập nhật hóa đơn
 PUT http://localhost:3000/hoadon/HD001
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
@@ -64,9 +95,9 @@ Content-Type: application/json
   "MaNV": "NV001"
 }
 
-### Cập nhật chi tiết hóa đơn cho sinh viên
+### [ADMIN] Cập nhật chi tiết hóa đơn cho sinh viên
 PUT http://localhost:3000/hoadon/HD001/chitiet/SV01
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
 Content-Type: application/json
 
 {
@@ -74,6 +105,172 @@ Content-Type: application/json
   "TrangThai": 1
 }
 
-### Xóa mềm hóa đơn (ẩn hóa đơn)
+### [ADMIN] Xóa mềm hóa đơn (ẩn hóa đơn)
 DELETE http://localhost:3000/hoadon/HD001
-Authorization: Bearer {{token}}
+Authorization: Bearer {{admin_token}}
+
+# ==============================================
+# API CHO NHÂN VIÊN (ChucVu = 2) - QUYỀN QUẢN LÝ
+# ==============================================
+
+### [NHÂN VIÊN] Lấy tất cả hóa đơn
+GET http://localhost:3000/hoadon
+Authorization: Bearer {{nhanvien_token}}
+
+### [NHÂN VIÊN] Tìm kiếm hóa đơn theo tên sinh viên
+GET http://localhost:3000/hoadon?keyword=nguyen van a
+Authorization: Bearer {{nhanvien_token}}
+
+### [NHÂN VIÊN] Lấy hóa đơn theo phòng cụ thể
+GET http://localhost:3000/hoadon?maPhong=P101
+Authorization: Bearer {{nhanvien_token}}
+
+### [NHÂN VIÊN] Tạo hóa đơn mới cho phòng
+POST http://localhost:3000/hoadon
+Authorization: Bearer {{nhanvien_token}}
+Content-Type: application/json
+
+{
+  "SoDien": 90,
+  "GiaDien": 3500,
+  "SoNuoc": 45,
+  "GiaNuoc": 15000,
+  "GiaPhong": 1900000,
+  "ChiPhiKhac": 40000,
+  "MaPhong": "P103",
+  "MaNV": "NV02"
+}
+
+### [NHÂN VIÊN] Cập nhật hóa đơn
+PUT http://localhost:3000/hoadon/HD002
+Authorization: Bearer {{nhanvien_token}}
+Content-Type: application/json
+
+{
+  "SoDien": 95,
+  "GiaDien": 3600,
+  "GiaPhong": 2000000,
+  "ChiPhiKhac": 45000
+}
+
+### [NHÂN VIÊN] Cập nhật trạng thái thanh toán cho sinh viên
+PUT http://localhost:3000/hoadon/HD002/chitiet/SV03
+Authorization: Bearer {{nhanvien_token}}
+Content-Type: application/json
+
+{
+  "TrangThai": 1
+}
+
+### [NHÂN VIÊN] Xóa hóa đơn
+DELETE http://localhost:3000/hoadon/HD002
+Authorization: Bearer {{nhanvien_token}}
+
+# ==============================================
+# API CHO SINH VIÊN (ChucVu = 1) - CHỈ XEM & THANH TOÁN
+# ==============================================
+
+### [SINH VIÊN] Xem hóa đơn của mình 
+# Backend tự động: Username "thuytien" → MaSV "SV002" → Filter hóa đơn
+GET http://localhost:3000/hoadon
+Authorization: Bearer {{sinhvien_token}}
+
+### [SINH VIÊN] Tìm kiếm trong hóa đơn của mình
+# Backend vẫn tự động filter theo MaSV của sinh viên
+GET http://localhost:3000/hoadon/search?keyword=thang 12
+Authorization: Bearer {{sinhvien_token}}
+
+### [SINH VIÊN] Xem hóa đơn với phân trang
+GET http://localhost:3000/hoadon?page=1&pageSize=5
+Authorization: Bearer {{sinhvien_token}}
+
+### [SINH VIÊN] Cập nhật trạng thái thanh toán hóa đơn của mình
+# Lưu ý: Phải dùng MaSV thực tế (SV002), không phải username (thuytien)
+PUT http://localhost:3000/hoadon/HD001/chitiet/SV002
+Authorization: Bearer {{sinhvien_token}}
+Content-Type: application/json
+
+{
+  "TrangThai": 1
+}
+
+# ==============================================
+# TEST CASES DATA FILTERING MỚI
+# ==============================================
+
+### [TEST] Kiểm tra conversion Username → MaSV
+# JWT token chứa: { "Username": "thuytien", "ChucVu": 1 }
+# Backend sẽ:
+# 1. Query: SELECT MaSV FROM tbl_sinhvien WHERE Username = 'thuytien'
+# 2. Result: MaSV = 'SV002' 
+# 3. Filter: WHERE ct.MaSV = 'SV002'
+GET http://localhost:3000/hoadon
+Authorization: Bearer {{sinhvien_token}}
+
+### [TEST] Sinh viên cố gắng cập nhật chi tiết sinh viên khác (sẽ bị từ chối - 403)
+PUT http://localhost:3000/hoadon/HD001/chitiet/SV001
+Authorization: Bearer {{sinhvien_token}}
+Content-Type: application/json
+
+{
+  "TrangThai": 1
+}
+
+# ==============================================
+# TEST CASES PHÂN QUYỀN & BẢO MẬT
+# ==============================================
+
+### [TEST] Sinh viên cố gắng tạo hóa đơn (sẽ bị từ chối - 403)
+POST http://localhost:3000/hoadon
+Authorization: Bearer {{sinhvien_token}}
+Content-Type: application/json
+
+{
+  "SoDien": 100,
+  "GiaDien": 3500,
+  "SoNuoc": 50,
+  "GiaNuoc": 15000,
+  "GiaPhong": 2000000,
+  "MaPhong": "P101",
+  "MaNV": "NV01"
+}
+
+### [TEST] Sinh viên cố gắng xóa hóa đơn (sẽ bị từ chối - 403)
+DELETE http://localhost:3000/hoadon/HD001
+Authorization: Bearer {{sinhvien_token}}
+
+### [TEST] Sinh viên cố gắng cập nhật hóa đơn (sẽ bị từ chối - 403)
+PUT http://localhost:3000/hoadon/HD001
+Authorization: Bearer {{sinhvien_token}}
+Content-Type: application/json
+
+{
+  "GiaPhong": 1000000
+}
+
+### [TEST] Sinh viên cố gắng cập nhật chi tiết của sinh viên khác (sẽ bị từ chối - 403)
+PUT http://localhost:3000/hoadon/HD001/chitiet/sinhvien_khac
+Authorization: Bearer {{sinhvien_token}}
+Content-Type: application/json
+
+{
+  "TrangThai": 1
+}
+
+### [TEST] Truy cập không có token (sẽ bị từ chối - 401)
+GET http://localhost:3000/hoadon
+
+### [TEST] Truy cập với token không hợp lệ (sẽ bị từ chối - 401)
+GET http://localhost:3000/hoadon
+Authorization: Bearer invalid_token_here
+
+# ==============================================
+# HƯỚNG DẪN SỬ DỤNG
+# ==============================================
+
+# 1. Thay thế các biến token ở đầu file bằng JWT token thực tế
+# 2. Admin có thể thực hiện tất cả các thao tác
+# 3. Nhân viên có thể quản lý hóa đơn nhưng không thể làm một số thao tác admin
+# 4. Sinh viên chỉ có thể xem hóa đơn của mình và cập nhật trạng thái thanh toán
+# 5. Backend tự động filter dữ liệu dựa trên ChucVu trong JWT token
+# 6. Tất cả request đều cần Authorization header với Bearer token

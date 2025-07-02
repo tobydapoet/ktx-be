@@ -93,17 +93,14 @@ export class HoadonService {
     }
     qb.skip((page - 1) * limit).take(limit);
     const [data, total] = await qb.getManyAndCount();
-
-    // Xử lý trạng thái quá hạn cho từng chi tiết hóa đơn và cập nhật vào DB nếu cần
+    
     const today = new Date();
     const updatePromises: Promise<any>[] = [];
     data.forEach((hd: any) => {
       if (hd.chiTiet && Array.isArray(hd.chiTiet)) {
         hd.chiTiet.forEach((ct: any) => {
-          // Nếu chưa thanh toán (TrangThai = 0) và đã quá hạn
           if (ct.TrangThai === 0 && hd.HanNop && new Date(hd.HanNop) < today) {
             ct.TrangThai = -1; // -1: quá hạn
-            // Cập nhật vào DB nếu chưa quá hạn trong DB
             updatePromises.push(
               this.chiTietHoaDonRepository.update({ MaHD: hd.MaHD, MaSV: ct.MaSV }, { TrangThai: -1 })
             );
@@ -119,36 +116,10 @@ export class HoadonService {
       data: data.map(this.mapHoaDon),
       total,
     };
+    
   }
 
-  // Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
-  async getHoaDonWithChiTiet(maHD: string) {
-    const hoadon = await this.hoadonRepository.findOne({ where: { MaHD: maHD }, relations: ['nhanvien'] });
-    if (!hoadon) return null;
-    // Chỉ lấy các trường cần thiết của nhân viên
-    let nhanvien: any = undefined;
-    if (hoadon.nhanvien) {
-      nhanvien = {
-        MaNV: hoadon.nhanvien.MaNV,
-        TenNV: hoadon.nhanvien.TenNV
-      };
-    }
-    const chiTiet = await this.chiTietHoaDonRepository.find({
-      where: { MaHD: maHD },
-      relations: ['sinhvien'],
-    });
-    return {
-      ...hoadon,
-      nhanvien,
-      phongs: undefined, // Bỏ không trả về phongs
-      chiTiet: chiTiet.map(ct => ({
-        MaSV: ct.MaSV,
-        TenSV: ct.sinhvien?.TenSV,
-        TongTien: ct.TongTien,
-        TrangThai: ct.TrangThai,
-      })),
-    };
-  }
+
 
   // Tạo mới hóa đơn và tự động tạo chi tiết cho từng sinh viên trong phòng
   async createHoaDonAndAutoChiTiet(dto: CreateHoaDonDTO) {
@@ -198,7 +169,7 @@ export class HoadonService {
       TrangThai: 0,
     }));
     await this.chiTietHoaDonRepository.save(chiTietArr);
-    return this.getHoaDonWithChiTiet(hoadon.MaHD!);
+    return hoadon;
   }
 
   // Tạo mới hóa đơn và chi tiết thủ công
@@ -215,7 +186,7 @@ export class HoadonService {
       TrangThai: ct.TrangThai ?? 0,
     }));
     await this.chiTietHoaDonRepository.save(chiTietArr);
-    return this.getHoaDonWithChiTiet(hoadon.MaHD!);
+    return hoadon;
   }
 
   // Cập nhật hóa đơn
@@ -253,13 +224,17 @@ export class HoadonService {
   }
 
   // Cập nhật chi tiết hóa đơn, cho phép cập nhật số tiền và trạng thái
-  async updateChiTietHoaDon(maHD: string, maSV: string, dto: UpdateChiTietHoaDonDTO) {
+  async updateChiTietHoaDon(trangthai: number, maHD: string, maSV: string, dto: UpdateChiTietHoaDonDTO) {
     const ct = await this.chiTietHoaDonRepository.findOne({ where: { MaHD: maHD, MaSV: maSV } });
     if (!ct) throw new Error('Chi tiết hóa đơn không tồn tại!');
-    // Cho phép cập nhật cả số tiền và trạng thái nếu có
     const updateData: UpdateChiTietHoaDonDTO = { };
-    if (typeof dto.TongTien === 'number') updateData.TongTien = dto.TongTien;
-    if (typeof dto.TrangThai === 'number') updateData.TrangThai = dto.TrangThai;
+    if (trangthai === 1) {
+      if (typeof dto.TrangThai === 'number') updateData.TrangThai = dto.TrangThai;
+      if (dto.TongTien) throw new Error('bạn không có quyền cập nhật số tiền');
+    } else { 
+      if (typeof dto.TongTien === 'number') updateData.TongTien = dto.TongTien;
+      if (typeof dto.TrangThai === 'number') updateData.TrangThai = dto.TrangThai;
+    }
     const result = this.chiTietHoaDonRepository.merge(ct, updateData);
     return await this.chiTietHoaDonRepository.save(result);
   }
@@ -273,7 +248,6 @@ export class HoadonService {
     return hd;
   }
 
-  // Tìm kiếm hóa đơn nâng cao (dùng chung với getAllHoaDon, chỉ khác filter)
   async searchHoaDon(query: {
     keyword?: string;
     maSV?: string;
