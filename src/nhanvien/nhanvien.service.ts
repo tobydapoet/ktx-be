@@ -121,12 +121,12 @@ export class NhanvienService {
   }
 
   async updateNhanVien(
-    maSV: string,
+    maNV: string,
     dto: Partial<UpdateNhanVienDTO>,
     password?: string,
   ): Promise<NhanVien | null> {
     const existing = await this.nhanvienRepository.findOne({
-      where: { MaNV: maSV },
+      where: { MaNV: maNV },
       relations: ['account'],
     });
     if (!existing) throw new Error('Nhân viên không tồn tại!');

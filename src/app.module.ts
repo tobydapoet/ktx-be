@@ -15,6 +15,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from './account/roles.guard';
 import { JwtAuthGuard } from './account/auth.guard';
 import { AuthModule } from './auth/auth.module';
+import { BlacklistModule } from './blacklist/blacklist.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AuthModule } from './auth/auth.module';
     HopdongModule,
     AccountModule,
     AuthModule,
+    BlacklistModule,
   ],
   controllers: [AppController],
   providers: [

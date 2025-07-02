@@ -48,8 +48,6 @@ export class NhanvienController {
     try {
       const res = await this.nhanvienService.createNhanvien(dto, Password);
       if (res) {
-        console.log(res);
-
         return {
           success: true,
           data: res,

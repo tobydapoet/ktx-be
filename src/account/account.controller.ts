@@ -8,6 +8,8 @@ import {
   Param,
   UseGuards,
   Request,
+  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 
@@ -68,6 +70,7 @@ export class AccountController {
       return {
         success: true,
         access_token: account.access_token,
+        refresh_token: account.refresh_token,
       };
     } else {
       return {
@@ -75,5 +78,15 @@ export class AccountController {
         error: 'Tài khoản hoặc mật khẩu không chính xác!',
       };
     }
+  }
+
+  @Public()
+  @Post('refresh')
+  async handleRefreshToken(@Body() body: { refresh_token: string }) {
+    const result = await this.accountService.refreshToken(body.refresh_token);
+    if (!result) {
+      throw new UnauthorizedException('Refresh token không hợp lệ');
+    }
+    return result;
   }
 }

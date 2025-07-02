@@ -43,7 +43,6 @@ export class SinhvienController {
   @Roles(0, 1, 2)
   @Get('/phong/:maphong')
   async getPhong(@Param('maphong') maPhong: string) {
-    console.log('MaPhong nhận được:', maPhong);
     return await this.sinhvienService.getApproveSVInPhong(maPhong);
   }
 

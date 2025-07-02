@@ -13,7 +13,6 @@ import { PhongService } from './phong.service';
 import { UpdatePhongDTO } from './dto/update_phong.dto';
 import { CreatePhongDTO } from './dto/create_phong.dto';
 import { Roles } from 'src/account/roles.decorator';
-import { Public } from 'src/account/public.decorator';
 
 @Controller('phong')
 export class PhongController {
