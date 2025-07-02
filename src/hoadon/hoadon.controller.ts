@@ -23,143 +23,67 @@ export class HoadonController {
     private hoadonService: HoadonService,
   ) {}
 
-  @Get('')
+  @Get()
   @Roles(0, 1, 2)
-  async getAll(@Query('maSV') maSV?: string) {
-    return await this.hoadonService.getAllHoaDon(maSV);
+  async getAll(@Query() query: any) {
+    return await this.hoadonService.getAllHoaDon(query);
   }
 
-  @Roles(0, 1, 2)
   @Get('search')
-  async search(@Query('keyword') keyword: string, @Query('maSV') maSV?: string) {
-    return await this.hoadonService.searchHoaDon(keyword, maSV);
+  @Roles(0, 1, 2)
+  async search(@Query() query: any) {
+    return await this.hoadonService.searchHoaDon(query);
   }
 
+  @Get(':maHD')
   @Roles(0, 1, 2)
-  @Get(':mahd')
-  async getHD(@Param('mahd') maHD: string) {
+  async getOne(@Param('maHD') maHD: string) {
     return await this.hoadonService.getHoaDonWithChiTiet(maHD);
   }
 
+  @Post()
   @Roles(0, 2)
-  @Post('create')
   async create(@Body() dto: CreateHoaDonDTO) {
     try {
       const res = await this.hoadonService.createHoaDonAndAutoChiTiet(dto);
-      if (res) {
-        return {
-          success: true,
-          data: res,
-        };
-      }
+      return { success: true, data: res };
     } catch (err) {
-      let errorMsg = 'Có lỗi xảy ra';
-      if (err && typeof err === 'object' && err !== null && 'message' in err) {
-        errorMsg = String((err as { message?: unknown }).message);
-      }
       throw new HttpException(
-        {
-          success: false,
-          error: errorMsg,
-        },
+        { success: false, error: err.message || 'Có lỗi xảy ra' },
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
+  @Put(':maHD')
   @Roles(0, 2, 1)
-  @Put('update/:mahd')
-  async update(@Param('mahd') maHD: string, @Body() dto: UpdateHoaDonDTO) {
+  async update(@Param('maHD') maHD: string, @Body() dto: UpdateHoaDonDTO) {
     try {
-      console.log('=== DEBUG UPDATE HOADON ===');
-      console.log('MaHD:', maHD);
-      console.log('DTO received:', dto);
-      console.log('DTO type check:', {
-        SoDien: typeof dto.SoDien,
-        GiaDien: typeof dto.GiaDien,
-        SoNuoc: typeof dto.SoNuoc,
-        GiaNuoc: typeof dto.GiaNuoc,
-        GiaPhong: typeof dto.GiaPhong,
-        MaPhong: typeof dto.MaPhong,
-        MaNV: typeof dto.MaNV,
-        NgayLap: typeof dto.NgayLap,
-      });
-      
       const res = await this.hoadonService.updateHoaDon(maHD, dto);
-      if (res) {
-        return {
-          success: true,
-          data: res,
-        };
-      }
+      return { success: true, data: res };
     } catch (err) {
-      console.log('=== ERROR IN UPDATE ===');
-      console.log('Error:', err);
-      let errorMsg = 'Có lỗi xảy ra';
-      if (err && typeof err === 'object' && err !== null && 'message' in err) {
-        errorMsg = String((err as { message?: unknown }).message);
-      }
       throw new HttpException(
-        {
-          success: false,
-          error: errorMsg,
-        },
+        { success: false, error: err.message || 'Có lỗi xảy ra' },
         HttpStatus.BAD_REQUEST,
       );
     }
   }
 
+  @Delete(':maHD')
   @Roles(0, 2)
-  @Delete('delete/:mahd')
-  async delete(@Param('mahd') maHD: string) {
-    try {
-      const res = await this.hoadonService.softDeleteHoaDon(maHD);
-      if (res) {
-        return {
-          success: true,
-          data: res,
-        };
-      }
-    } catch (err) {
-      let errorMsg = 'Có lỗi xảy ra';
-      if (err && typeof err === 'object' && err !== null && 'message' in err) {
-        errorMsg = String((err as { message?: unknown }).message);
-      }
-      throw new HttpException(
-        {
-          success: false,
-          error: errorMsg,
-        },
-        HttpStatus.BAD_REQUEST,
-      );
-    }
+  async remove(@Param('maHD') maHD: string) {
+    const res = await this.hoadonService.softDeleteHoaDon(maHD);
+    return { success: !!res, data: res };
   }
 
-  @Roles(0, 2)
-  @Post('update-sv-tien/:mahd')
-  async updateSoTienSinhVien(
-    @Param('mahd') maHD: string,
-    @Body() svTien: Record<string, number>,
+  @Put(':maHD/chitiet/:maSV')
+  @Roles(0, 1, 2)
+  async updateChiTiet(
+    @Param('maHD') maHD: string,
+    @Param('maSV') maSV: string,
+    @Body() dto: any,
   ) {
-    // svTien: { [MaSV]: TongTien }
-    const promises = Object.entries(svTien).map(async ([maSV, tongTien]) => {
-      return this.hoadonService.updateChiTietHoaDon(maHD, maSV, {
-        TongTien: tongTien,
-      });
-    });
-    await Promise.all(promises);
-    return { success: true };
-  }
-
-  @Roles(1)
-  @Post('thanhtoan-sinhvien/:mahd')
-  async thanhToanSinhVien(
-    @Param('mahd') maHD: string,
-    @Body() body: { MaSV: string },
-  ) {
-    await this.hoadonService.updateChiTietHoaDon(maHD, body.MaSV, {
-      TrangThai: 1,
-    });
-    return { success: true };
+    const res = await this.hoadonService.updateChiTietHoaDon(maHD, maSV, dto);
+    return { success: true, data: res };
   }
 }

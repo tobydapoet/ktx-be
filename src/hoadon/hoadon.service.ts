@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Like, In } from 'typeorm';
 import { HoaDon } from './hoadon.entity';
@@ -19,25 +19,9 @@ export class HoadonService {
     private readonly sinhVienRepository: Repository<SinhVien>,
   ) {}
 
-  // Lấy tất cả hóa đơn (chỉ trạng thái hiển thị)
-  async getAllHoaDon(maSV?: string): Promise<any[]> {
-    let list;
-    if (maSV) {
-      // Nếu là sinh viên, chỉ lấy hóa đơn có sinh viên này
-      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV } });
-      const maHDs = chiTietList.map(ct => ct.MaHD);
-      list = await this.hoadonRepository.find({
-        where: { MaHD: In(maHDs), TrangThai: 1 },
-        relations: ['nhanvien'],
-      });
-    } else {
-      // Quản lý, nhân viên: lấy toàn bộ
-      list = await this.hoadonRepository.find({
-        where: { TrangThai: 1 },
-        relations: ['nhanvien'],
-      });
-    }
-    return list.map(hd => ({
+  // Gom logic map hóa đơn trả về
+  private mapHoaDon(hd: HoaDon) {
+    return {
       MaHD: hd.MaHD,
       SoDien: hd.SoDien,
       GiaDien: hd.GiaDien,
@@ -50,8 +34,91 @@ export class HoadonService {
       NgayLap: hd.NgayLap,
       HanNop: hd.HanNop,
       nhanvien: hd.nhanvien ? { MaNV: hd.nhanvien.MaNV, TenNV: hd.nhanvien.TenNV } : undefined,
-      // Không trả về phongs, chiTiet, các trường không cần thiết
-    }));
+      chiTiet: hd.chiTiet ? hd.chiTiet.map((ct: any) => ({
+        MaSV: ct.MaSV,
+        TongTien: ct.TongTien,
+        TrangThai: ct.TrangThai,
+        TenSV: ct.sinhvien?.TenSV
+      })) : [],
+    };
+  }
+
+  // Lấy danh sách hóa đơn, hỗ trợ filter, phân trang, tìm kiếm
+  async getAllHoaDon(query: {
+    maSV?: string;
+    keyword?: string;
+    page?: number;
+    limit?: number;
+    maPhong?: string;
+    tenSV?: string;
+    trangThai?: number;
+  } = {}): Promise<{ data: any[]; total: number }> {
+    const {
+      maSV,
+      keyword = '',
+      page = 1,
+      limit = 20,
+      maPhong,
+      tenSV,
+      trangThai = 1,
+    } = query;
+    const qb = this.hoadonRepository.createQueryBuilder('hd')
+      .leftJoinAndSelect('hd.nhanvien', 'nhanvien')
+      .leftJoinAndSelect('hd.chiTiet', 'chiTiet')
+      .leftJoinAndSelect('chiTiet.sinhvien', 'svct');
+    qb.where('hd.TrangThai = :trangThai', { trangThai });
+    if (maSV) {
+      qb.innerJoin('hd.chiTiet', 'ct', 'ct.MaSV = :maSV', { maSV });
+    }
+    if (maPhong) {
+      qb.andWhere('hd.MaPhong = :maPhong', { maPhong });
+    }
+
+    // Nếu có keyword, tìm cả theo tên sinh viên (chuẩn hóa join, tránh xung đột alias)
+    if (keyword) {
+      qb.innerJoin('hd.chiTiet', 'ctkw')
+        .innerJoin('ctkw.sinhvien', 'svkw');
+      qb.andWhere(`(
+        LOWER(svkw.TenSV) LIKE :kw
+        OR hd.MaHD LIKE :kw2
+        OR hd.MaPhong LIKE :kw2
+        OR hd.MaNV LIKE :kw2
+      )`, { kw: `%${keyword.toLowerCase()}%`, kw2: `%${keyword}%` });
+    }
+
+    if (tenSV) {
+      qb.innerJoin('hd.chiTiet', 'ct2')
+        .innerJoin('ct2.sinhvien', 'sv')
+        .andWhere('LOWER(sv.TenSV) LIKE :tenSV', { tenSV: `%${tenSV.toLowerCase()}%` });
+    }
+    qb.skip((page - 1) * limit).take(limit);
+    const [data, total] = await qb.getManyAndCount();
+
+    // Xử lý trạng thái quá hạn cho từng chi tiết hóa đơn và cập nhật vào DB nếu cần
+    const today = new Date();
+    const updatePromises: Promise<any>[] = [];
+    data.forEach((hd: any) => {
+      if (hd.chiTiet && Array.isArray(hd.chiTiet)) {
+        hd.chiTiet.forEach((ct: any) => {
+          // Nếu chưa thanh toán (TrangThai = 0) và đã quá hạn
+          if (ct.TrangThai === 0 && hd.HanNop && new Date(hd.HanNop) < today) {
+            ct.TrangThai = -1; // -1: quá hạn
+            // Cập nhật vào DB nếu chưa quá hạn trong DB
+            updatePromises.push(
+              this.chiTietHoaDonRepository.update({ MaHD: hd.MaHD, MaSV: ct.MaSV }, { TrangThai: -1 })
+            );
+          }
+        });
+      }
+    });
+    if (updatePromises.length > 0) {
+      await Promise.all(updatePromises);
+    }
+
+    return {
+      data: data.map(this.mapHoaDon),
+      total,
+    };
   }
 
   // Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
@@ -206,75 +273,16 @@ export class HoadonService {
     return hd;
   }
 
-  // Tìm kiếm hóa đơn (hỗ trợ tìm theo tên sinh viên cho cả sinh viên và admin/nhân viên)
-  async searchHoaDon(keyword: string, maSV?: string) {
-    let list;
-    const lowerKeyword = keyword ? keyword.toLowerCase() : '';
-    if (maSV) {
-      // Nếu là sinh viên, chỉ tìm trong các hóa đơn của sinh viên đó
-      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV }, relations: ['sinhvien'] });
-      const maHDs = chiTietList.map(ct => ct.MaHD);
-      if (maHDs.length === 0) return [];
-      // Nếu tìm theo tên sinh viên (TenSV)
-      const matchedByTenSV = chiTietList.filter(ct =>
-        ct.sinhvien && ct.sinhvien.TenSV && ct.sinhvien.TenSV.toLowerCase().includes(lowerKeyword)
-      );
-      if (matchedByTenSV.length > 0) {
-        const matchedMaHDs = matchedByTenSV.map(ct => ct.MaHD);
-        list = await this.hoadonRepository.find({
-          where: { MaHD: In(matchedMaHDs), TrangThai: 1 },
-          relations: ['nhanvien'],
-        });
-      } else {
-        // Tìm theo MaHD, MaPhong, MaNV
-        let hoaDonList = await this.hoadonRepository.find({
-          where: { MaHD: In(maHDs), TrangThai: 1 },
-          relations: ['nhanvien'],
-        });
-        list = hoaDonList.filter(hd =>
-          (hd.MaHD && hd.MaHD.toLowerCase().includes(lowerKeyword)) ||
-          (hd.MaPhong && hd.MaPhong.toLowerCase().includes(lowerKeyword)) ||
-          (hd.MaNV && hd.MaNV.toLowerCase().includes(lowerKeyword))
-        );
-      }
-    } else {
-      // Admin/nhân viên: tìm toàn bộ, có thể tìm theo tên sinh viên
-      // Lấy tất cả chi tiết hóa đơn có sinh viên tên khớp
-      const chiTietList = await this.chiTietHoaDonRepository.find({ relations: ['sinhvien'] });
-      const matchedByTenSV = chiTietList.filter(ct =>
-        ct.sinhvien && ct.sinhvien.TenSV && ct.sinhvien.TenSV.toLowerCase().includes(lowerKeyword)
-      );
-      if (matchedByTenSV.length > 0) {
-        const maHDs = matchedByTenSV.map(ct => ct.MaHD);
-        list = await this.hoadonRepository.find({
-          where: { MaHD: In(maHDs), TrangThai: 1 },
-          relations: ['nhanvien'],
-        });
-      } else {
-        // Tìm theo MaHD, MaPhong, MaNV
-        list = await this.hoadonRepository.find({
-          where: [
-            { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
-            { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
-            { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
-          ],
-          relations: ['nhanvien'],
-        });
-      }
-    }
-    return list.map(hd => ({
-      MaHD: hd.MaHD,
-      SoDien: hd.SoDien,
-      GiaDien: hd.GiaDien,
-      SoNuoc: hd.SoNuoc,
-      GiaNuoc: hd.GiaNuoc,
-      GiaPhong: hd.GiaPhong,
-      ChiPhiKhac: hd.ChiPhiKhac,
-      MaPhong: hd.MaPhong,
-      MaNV: hd.MaNV,
-      NgayLap: hd.NgayLap,
-      HanNop: hd.HanNop,
-      nhanvien: hd.nhanvien ? { MaNV: hd.nhanvien.MaNV, TenNV: hd.nhanvien.TenNV } : undefined,
-    }));
+  // Tìm kiếm hóa đơn nâng cao (dùng chung với getAllHoaDon, chỉ khác filter)
+  async searchHoaDon(query: {
+    keyword?: string;
+    maSV?: string;
+    maPhong?: string;
+    tenSV?: string;
+    page?: number;
+    limit?: number;
+    trangThai?: number;
+  }) {
+    return this.getAllHoaDon(query);
   }
 }

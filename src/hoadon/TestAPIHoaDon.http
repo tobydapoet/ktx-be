@@ -1,17 +1,18 @@
-### Lấy tất cả hóa đơn (quản lý/nhân viên xem toàn bộ, sinh viên chỉ xem hóa đơn của mình)
+
+
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VybmFtZSI6ImFkbWluIiwiUGFzc3dvcmQiOiJhZG1pbiIsIkNodWNWdSI6MiwiaWF0IjoxNzUxNDc4MDk1LCJleHAiOjE3NTE0Nzg5OTV9.srLu7lQrXfwE-3gI7WAs0S9FC0vqRbdpqjwmoaNfSuI
+
+### Lấy danh sách hóa đơn (filter, phân trang, tìm kiếm, quyền)
 GET http://localhost:3000/hoadon
+Authorization: Bearer {{token}}
 
-### Lấy tất cả hóa đơn của một sinh viên (truyền mã sinh viên)
-GET http://localhost:3000/hoadon?maSV=SV002
+### Lấy chi tiết hóa đơn theo mã (bao gồm chi tiết từng sinh viên)
+GET http://localhost:3000/hoadon/HD001
+Authorization: Bearer {{token}}
 
-### Tìm kiếm hóa đơn theo từ khóa (mã hóa đơn, mã phòng, mã NV)
-GET http://localhost:3000/hoadon/search?keyword=SV01
-
-### Lấy chi tiết hóa đơn (bao gồm chi tiết từng sinh viên)
-GET http://localhost:3000/hoadon/HD01
-
-### Tạo mới hóa đơn và tự động chia tiền cho sinh viên trong phòng
-POST http://localhost:3000/hoadon/create
+### Tạo mới hóa đơn (tự động chia tiền cho sinh viên trong phòng)
+POST http://localhost:3000/hoadon
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -25,15 +26,9 @@ Content-Type: application/json
   "MaNV": "NV01"
 }
 
-### Trường hợp phòng đã có hóa đơn tháng này (ví dụ lỗi trả về)
-# Response:
-# {
-#   "success": false,
-#   "error": "Phòng này đã có hóa đơn trong tháng này!"
-# }
-
 ### Tạo mới hóa đơn và nhập chi tiết thủ công
-POST http://localhost:3000/hoadon/create-with-detail
+POST http://localhost:3000/hoadon/with-detail
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -54,7 +49,8 @@ Content-Type: application/json
 }
 
 ### Cập nhật hóa đơn
-PUT http://localhost:3000/hoadon/update/HD001
+PUT http://localhost:3000/hoadon/HD001
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -70,6 +66,7 @@ Content-Type: application/json
 
 ### Cập nhật chi tiết hóa đơn cho sinh viên
 PUT http://localhost:3000/hoadon/HD001/chitiet/SV01
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -77,15 +74,6 @@ Content-Type: application/json
   "TrangThai": 1
 }
 
-### Cập nhật số tiền từng sinh viên trong hóa đơn
-POST http://localhost:3000/hoadon/update-sv-tien/HD01
-Content-Type: application/json
-
-{
-  "SV001": 1200000,
-  "SV002": 1500000,
-  "SV003": 1300000
-}
-
 ### Xóa mềm hóa đơn (ẩn hóa đơn)
-DELETE http://localhost:3000/hoadon/delete/HD001
+DELETE http://localhost:3000/hoadon/HD001
+Authorization: Bearer {{token}}

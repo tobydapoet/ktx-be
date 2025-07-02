@@ -33,7 +33,7 @@ export class HoaDon {
   MaNV: string;
 
   @Column({ type: 'int', default: 1 })
-  TrangThai: number; // 1: hiển thị, 0: ẩn (xóa mềm)
+  TrangThai: number;
 
   @Column({ type: 'date', nullable: true })
   NgayLap: Date;
