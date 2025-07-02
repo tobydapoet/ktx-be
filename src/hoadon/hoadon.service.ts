@@ -206,39 +206,62 @@ export class HoadonService {
     return hd;
   }
 
-  // Tìm kiếm hóa đơn
+  // Tìm kiếm hóa đơn (hỗ trợ tìm theo tên sinh viên cho cả sinh viên và admin/nhân viên)
   async searchHoaDon(keyword: string, maSV?: string) {
     let list;
-    
+    const lowerKeyword = keyword ? keyword.toLowerCase() : '';
     if (maSV) {
-      // Nếu là sinh viên, tìm kiếm trong các hóa đơn của sinh viên đó
-      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV } });
+      // Nếu là sinh viên, chỉ tìm trong các hóa đơn của sinh viên đó
+      const chiTietList = await this.chiTietHoaDonRepository.find({ where: { MaSV: maSV }, relations: ['sinhvien'] });
       const maHDs = chiTietList.map(ct => ct.MaHD);
-      
-      if (maHDs.length === 0) {
-        return [];
+      if (maHDs.length === 0) return [];
+      // Nếu tìm theo tên sinh viên (TenSV)
+      const matchedByTenSV = chiTietList.filter(ct =>
+        ct.sinhvien && ct.sinhvien.TenSV && ct.sinhvien.TenSV.toLowerCase().includes(lowerKeyword)
+      );
+      if (matchedByTenSV.length > 0) {
+        const matchedMaHDs = matchedByTenSV.map(ct => ct.MaHD);
+        list = await this.hoadonRepository.find({
+          where: { MaHD: In(matchedMaHDs), TrangThai: 1 },
+          relations: ['nhanvien'],
+        });
+      } else {
+        // Tìm theo MaHD, MaPhong, MaNV
+        let hoaDonList = await this.hoadonRepository.find({
+          where: { MaHD: In(maHDs), TrangThai: 1 },
+          relations: ['nhanvien'],
+        });
+        list = hoaDonList.filter(hd =>
+          (hd.MaHD && hd.MaHD.toLowerCase().includes(lowerKeyword)) ||
+          (hd.MaPhong && hd.MaPhong.toLowerCase().includes(lowerKeyword)) ||
+          (hd.MaNV && hd.MaNV.toLowerCase().includes(lowerKeyword))
+        );
       }
-      
-      list = await this.hoadonRepository
-        .createQueryBuilder('hoadon')
-        .leftJoinAndSelect('hoadon.nhanvien', 'nhanvien')
-        .where('hoadon.TrangThai = :trangThai', { trangThai: 1 })
-        .andWhere('hoadon.MaHD IN (:...maHDs)', { maHDs })
-        .andWhere('(hoadon.MaHD LIKE :keyword OR hoadon.MaPhong LIKE :keyword OR hoadon.MaNV LIKE :keyword)', 
-                  { keyword: `%${keyword}%` })
-        .getMany();
     } else {
-      // Quản lý, nhân viên: tìm kiếm toàn bộ
-      list = await this.hoadonRepository.find({
-        where: [
-          { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
-          { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
-          { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
-        ],
-        relations: ['nhanvien'],
-      });
+      // Admin/nhân viên: tìm toàn bộ, có thể tìm theo tên sinh viên
+      // Lấy tất cả chi tiết hóa đơn có sinh viên tên khớp
+      const chiTietList = await this.chiTietHoaDonRepository.find({ relations: ['sinhvien'] });
+      const matchedByTenSV = chiTietList.filter(ct =>
+        ct.sinhvien && ct.sinhvien.TenSV && ct.sinhvien.TenSV.toLowerCase().includes(lowerKeyword)
+      );
+      if (matchedByTenSV.length > 0) {
+        const maHDs = matchedByTenSV.map(ct => ct.MaHD);
+        list = await this.hoadonRepository.find({
+          where: { MaHD: In(maHDs), TrangThai: 1 },
+          relations: ['nhanvien'],
+        });
+      } else {
+        // Tìm theo MaHD, MaPhong, MaNV
+        list = await this.hoadonRepository.find({
+          where: [
+            { MaHD: Like(`%${keyword}%`), TrangThai: 1 },
+            { MaPhong: Like(`%${keyword}%`), TrangThai: 1 },
+            { MaNV: Like(`%${keyword}%`), TrangThai: 1 },
+          ],
+          relations: ['nhanvien'],
+        });
+      }
     }
-
     return list.map(hd => ({
       MaHD: hd.MaHD,
       SoDien: hd.SoDien,
