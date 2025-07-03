@@ -123,7 +123,8 @@ export class HoadonService {
 
   // Tạo mới hóa đơn và tự động tạo chi tiết cho từng sinh viên trong phòng
   async createHoaDonAndAutoChiTiet(dto: CreateHoaDonDTO) {
-    // Kiểm tra đã có hóa đơn của phòng này trong tháng này chưa
+    const sinhViens = await this.sinhVienRepository.find({ where: { MaPhong: dto.MaPhong } });
+    if (!sinhViens || sinhViens.length === 0) throw new Error('Không có sinh viên nào trong phòng này!');
     const now = dto.NgayLap ? new Date(dto.NgayLap) : new Date();
     const month = now.getMonth() + 1;
     const year = now.getFullYear();
@@ -150,6 +151,7 @@ export class HoadonService {
       }
     }
     const newMaHD = `HD${newNumber.toString().padStart(2, '0')}`;
+    
     const hoaDonEntity = this.hoadonRepository.create({
       ...dto,
       MaHD: newMaHD,
@@ -157,8 +159,7 @@ export class HoadonService {
       HanNop: dto.HanNop ? new Date(dto.HanNop) : undefined,
     });
     const hoadon = await this.hoadonRepository.save(hoaDonEntity);
-    const sinhViens = await this.sinhVienRepository.find({ where: { MaPhong: dto.MaPhong } });
-    if (!sinhViens || sinhViens.length === 0) throw new Error('Không có sinh viên nào trong phòng này!');
+   
     const tongTien = dto.GiaPhong + (dto.SoDien * dto.GiaDien) + (dto.SoNuoc * dto.GiaNuoc) + (dto.ChiPhiKhac || 0);
     const soSV = sinhViens.length;
     const tienMoiSV = Math.round(tongTien / soSV);
