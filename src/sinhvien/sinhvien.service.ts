@@ -242,11 +242,12 @@ export class SinhvienService {
     if (!sv) {
       throw new Error('Không tìm thấy sinh viên');
     }
-    if (sv.TrangThai === 2) {
+    if (sv.TrangThai === 1) {
+      sv.phong.SoSV -= 1;
+      await this.phongRepository.save(sv.phong);
+    } else {
       throw new Error('Sinh viên đã được hủy trước đó');
     }
-    sv.phong.SoSV -= 1;
-    await this.phongRepository.save(sv.phong);
     sv.TrangThai = 2;
     return await this.sinhVienRepository.save(sv);
   }
