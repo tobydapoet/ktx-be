@@ -52,7 +52,6 @@ export class SinhvienController {
     const { Password, ...dto } = body;
     try {
       const res = await this.sinhvienService.createSinhVien(dto, Password);
-      console.log(res);
 
       if (res) {
         return {
@@ -83,8 +82,6 @@ export class SinhvienController {
         Password,
       );
       if (res) {
-        console.log(res);
-
         return {
           success: true,
           data: res,

@@ -75,7 +75,6 @@ export class NhanvienController {
         dto,
         Password,
       );
-      console.log(res);
 
       if (res) {
         return {
