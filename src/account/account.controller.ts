@@ -9,22 +9,18 @@ import {
   UseGuards,
   Request,
   UnauthorizedException,
-  BadRequestException,
 } from '@nestjs/common';
 import { AccountService } from './account.service';
 
 import { LoginDTO } from './dto/login.dto';
 import { RegisterDTO } from './dto/register.dto';
-import { AuthGuard } from '@nestjs/passport';
 import { Roles } from './roles.decorator';
-import { RolesGuard } from './roles.guard';
 import { Public } from './public.decorator';
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
   @Roles(0, 1, 2)
-  @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Get('me')
   getMe(@Request() req) {
     return req.user;
