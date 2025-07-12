@@ -11,7 +11,6 @@ import {
 } from '@nestjs/common';
 import { NhanvienService } from './nhanvien.service';
 import { Roles } from 'src/account/roles.decorator';
-import { Public } from 'src/account/public.decorator';
 
 @Controller('nhanvien')
 export class NhanvienController {

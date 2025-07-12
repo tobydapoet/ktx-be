@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Get,
   Param,
-  UseGuards,
   Request,
   UnauthorizedException,
 } from '@nestjs/common';
